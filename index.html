@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DXC MOD GAME</title>
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg,#080b12,#172333);
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+}
+
+.content {
+    position: relative;
+    z-index: 1;
+    padding: 25px;
+    width: 100%;
+}
+
+h1 {
+    font-size: clamp(25px,4vw,45px);
+    text-shadow: 0 0 15px white;
+}
+
+p { font-size: 18px; }
+
+.card {
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 500px;
+    margin: 35px auto;
+    line-height: 2.1;
+}
+
+a {
+    color: #42c9ff;
+    font-weight: bold;
+}
+
+footer {
+    margin-top: 60px;
+    color: #aaa;
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<div class="content">
+    <h1>🚀 CHÀO MỪNG ĐẾN VỚI DXC MOD GAME</h1>
+    <p>Website chia sẻ công cụ và nội dung game</p>
+
+    <div class="card">
+        🌐 Facebook: <a href="#">Facebook của tôi</a><br>
+        🎮 Discord: <a href="#">Discord của tôi</a><br>
+        ▶️ YouTube: <a href="#">Kênh YouTube</a><br>
+        📦 MOD GAME: <a href="#">Xem nội dung</a><br>
+        📩 Liên hệ: <a href="#">Liên hệ tôi</a>
+    </div>
+
+    <footer>© 2026 DXC MOD GAME</footer>
+</div>
+
+<script>
+const canvas = document.getElementById("stars");
+const ctx = canvas.getContext("2d");
+let stars = [];
+
+function resize() {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+    stars = Array.from({length:150},()=>({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        r:Math.random()*1.5,
+        speed:Math.random()*0.5+0.1
+    }));
+}
+
+function animate() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="white";
+
+    stars.forEach(s=>{
+        ctx.globalAlpha=Math.random()*0.5+0.5;
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+        ctx.fill();
+        s.y+=s.speed;
+        if(s.y>canvas.height) s.y=0;
+    });
+
+    ctx.globalAlpha=1;
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener("resize",resize);
+resize();
+animate();
+</script>
+
+</body>
+</html>
