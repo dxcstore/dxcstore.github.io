@@ -92,7 +92,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 .profile-btn:hover{background:#2ba868}
 
-/* Vị trí hiển thị đơn độc gọn gàng (Hà Nội) */
+/* Vị trí Hà Nội */
 .stats{
  display:flex;align-items:center;gap:6px;margin-top:18px;
  font-weight:bold;font-size:14px;color:#fff;
@@ -124,6 +124,31 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  display:grid;place-items:center;flex:none;box-shadow:0 2px 10px rgba(0,0,0,.4);
 }
 .play svg{width:18px;height:18px;fill:currentColor}
+
+/* Khung Bình luận (Comments) */
+.comments-section{margin-top:16px;padding:20px 24px}
+.comments-title{font-size:18px;font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.comment-form{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.comment-input, .comment-textarea{
+ width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);
+ border-radius:12px;padding:10px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none;
+ transition:border-color .2s;
+}
+.comment-input:focus, .comment-textarea:focus{border-color:rgba(255,255,255,0.5)}
+.comment-textarea{resize:vertical;min-height:60px}
+.comment-btn{
+ align-self:flex-end;background:#248e58;color:#fff;border:none;border-radius:16px;
+ padding:8px 20px;font-weight:bold;font-size:13px;cursor:pointer;transition:background .2s;
+}
+.comment-btn:hover{background:#2ba868}
+
+.comments-list{display:flex;flex-direction:column;gap:10px;max-height:220px;overflow-y:auto;padding-right:4px}
+.comment-item{
+ background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);
+ border-radius:12px;padding:10px 14px;
+}
+.comment-user{font-weight:bold;font-size:13px;color:#2ba868;margin-bottom:3px}
+.comment-text{font-size:14px;color:#ddd;word-break:break-word;margin:0}
 
 #sc-widget{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px}
 
@@ -205,6 +230,19 @@ main{position:relative;z-index:2;width:min(760px,100%)}
    </div>
   </div>
  </section>
+
+ <!-- Phần Khung Bình Luận Mới -->
+ <section class="panel comments-section">
+  <div class="comments-title">💬 Góc Lời Nhắn</div>
+  <div class="comment-form">
+   <input type="text" id="commentName" class="comment-input" placeholder="Tên của bạn..." maxlength="30">
+   <textarea id="commentText" class="comment-textarea" placeholder="Nhập lời nhắn gửi đến Chính Ok..." maxlength="200"></textarea>
+   <button type="button" id="commentSubmit" class="comment-btn">Gửi lời nhắn</button>
+  </div>
+  <div class="comments-list" id="commentsList">
+   <!-- Các bình luận sẽ hiện ở đây -->
+  </div>
+ </section>
 </main>
 
 <iframe id="sc-widget" allow="autoplay"
@@ -212,6 +250,48 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
+// Xử lý Bình luận (Lưu vào localStorage riêng cho máy)
+const commentKey = 'chinh_comments_v1';
+const nameInput = document.getElementById('commentName');
+const textInput = document.getElementById('commentText');
+const submitBtn = document.getElementById('commentSubmit');
+const commentsList = document.getElementById('commentsList');
+
+function loadComments() {
+ let saved = JSON.parse(localStorage.getItem(commentKey) || '[]');
+ commentsList.innerHTML = '';
+ if(saved.length === 0) {
+  commentsList.innerHTML = '<div style="color:#888;font-size:13px;text-align:center;padding:10px;">Chưa có lời nhắn nào, hãy là người đầu tiên nhắn cho Chính nhé!</div>';
+  return;
+ }
+ saved.forEach(c => {
+  const item = document.createElement('div');
+  item.className = 'comment-item';
+  item.innerHTML = `<div class="comment-user">${escapeHtml(c.name)}</div><p class="comment-text">${escapeHtml(c.text)}</p>`;
+  commentsList.appendChild(item);
+ });
+}
+
+function escapeHtml(text) {
+ const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+ return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+submitBtn.addEventListener('click', () => {
+ const name = nameInput.value.trim() || 'Ẩn danh';
+ const text = textInput.value.trim();
+ if(!text) return;
+ 
+ let saved = JSON.parse(localStorage.getItem(commentKey) || '[]');
+ saved.unshift({ name, text });
+ localStorage.setItem(commentKey, JSON.stringify(saved));
+ 
+ textInput.value = '';
+ loadComments();
+});
+
+loadComments();
+
 // Điều khiển nhạc SoundCloud & Màn hình chào mừng
 const frame = document.getElementById('sc-widget');
 const widget = SC.Widget(frame);
