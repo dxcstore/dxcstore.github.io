@@ -125,29 +125,9 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 .play svg{width:18px;height:18px;fill:currentColor}
 
-/* Khung Bình luận toàn cầu */
+/* Khung Bình luận Giscus chuẩn toàn cầu */
 .comments-section{margin-top:16px;padding:20px 24px}
 .comments-title{font-size:18px;font-weight:900;margin-bottom:14px}
-.comment-form{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
-.comment-input, .comment-textarea{
- width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);
- border-radius:12px;padding:10px 14px;color:#fff;font-family:inherit;font-size:14px;outline:none;
- transition:border-color .2s;
-}
-.comment-input:focus, .comment-textarea:focus{border-color:rgba(255,255,255,0.5)}
-.comment-textarea{resize:vertical;min-height:60px}
-.comment-btn{
- align-self:flex-end;background:#248e58;color:#fff;border:none;border-radius:16px;
- padding:8px 20px;font-weight:bold;font-size:13px;cursor:pointer;transition:background .2s;
-}
-.comment-btn:hover{background:#2ba868}
-.comments-list{display:flex;flex-direction:column;gap:10px;max-height:220px;overflow-y:auto;padding-right:4px}
-.comment-item{
- background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);
- border-radius:12px;padding:10px 14px;
-}
-.comment-user{font-weight:bold;font-size:13px;color:#2ba868;margin-bottom:3px}
-.comment-text{font-size:14px;color:#ddd;word-break:break-word;margin:0}
 
 #sc-widget{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px}
 
@@ -229,14 +209,22 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
  <section class="panel comments-section">
   <div class="comments-title">💬 Góc Lời Nhắn (Toàn Cầu)</div>
-  <form class="comment-form" id="commentForm">
-   <input type="text" id="commentName" class="comment-input" placeholder="Tên của bạn..." maxlength="30" required>
-   <textarea id="commentText" class="comment-textarea" placeholder="Nhập lời nhắn chung cho mọi người..." maxlength="200" required></textarea>
-   <button type="submit" id="commentSubmit" class="comment-btn">Gửi lời nhắn</button>
-  </form>
-  <div class="comments-list" id="commentsList">
-   <div style="color:#888;font-size:13px;text-align:center;padding:10px;">Đang tải lời nhắn từ đám mây...</div>
-  </div>
+  <!-- Khung bình luận Giscus tích hợp tự động qua GitHub -->
+  <script src="https://giscus.app/client.js"
+        data-repo="dxcstore/dxcstore.github.io"
+        data-repo-id="R_kgDOP3J58Q"
+        data-category="General"
+        data-category-id="DIC_kwDOP3J58c4Cg..."
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="top"
+        data-theme="transparent_dark"
+        data-lang="vi"
+        crossorigin="anonymous"
+        async>
+  </script>
  </section>
 </main>
 
@@ -245,87 +233,6 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
-// Sử dụng dịch vụ JSONBin công khai miễn phí không cần tạo tài khoản cho bạn
-const BIN_ID = '6739945faad3cb34b4b02446'; // Kho lưu trữ mẫu sẵn sàng dùng chung
-const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
-
-const form = document.getElementById('commentForm');
-const nameInput = document.getElementById('commentName');
-const textInput = document.getElementById('commentText');
-const submitBtn = document.getElementById('commentSubmit');
-const commentsList = document.getElementById('commentsList');
-
-function escapeHtml(text) {
- const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
- return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-// Tải danh sách bình luận từ đám mây khi mở web
-async function fetchComments() {
- try {
-  const res = await fetch(API_URL, { headers: { 'X-Master-Key': '$2a$10$R9h... (public)' } });
-  // Dùng phương thức công khai an toàn không lộ key ghi bảo mật
-  const data = await fetch(API_URL);
-  const json = await data.json();
-  const comments = json.record.comments || [];
-  
-  commentsList.innerHTML = '';
-  if(comments.length === 0) {
-   commentsList.innerHTML = '<div style="color:#888;font-size:13px;text-align:center;padding:10px;">Chưa có lời nhắn nào, hãy là người đầu tiên nhắn nhé!</div>';
-   return;
-  }
-  
-  comments.forEach(c => {
-   const item = document.createElement('div');
-   item.className = 'comment-item';
-   item.innerHTML = `<div class="comment-user">${escapeHtml(c.name)}</div><p class="comment-text">${escapeHtml(c.text)}</p>`;
-   commentsList.appendChild(item);
-  });
- } catch(e) {
-  commentsList.innerHTML = '<div style="color:#ff8888;font-size:13px;text-align:center;padding:10px;">Không thể tải bình luận lúc này.</div>';
- }
-}
-
-form.addEventListener('submit', async (e) => {
- e.preventDefault();
- const name = nameInput.value.trim() || 'Ẩn danh';
- const text = textInput.value.trim();
- if(!text) return;
-
- submitBtn.textContent = 'Đang gửi...';
- submitBtn.disabled = true;
-
- try {
-  // Lấy dữ liệu cũ về trước
-  const getRes = await fetch(API_URL);
-  const getJson = await getRes.json();
-  let comments = getJson.record.comments || [];
-
-  // Thêm cmt mới lên đầu
-  comments.unshift({ name, text });
-
-  // Đẩy ngược lên đám mây JSONBin
-  await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-   method: 'PUT',
-   headers: {
-    'Content-Type': 'application/json',
-    'X-Master-Key': '$2a$10$7... (public token)'
-   },
-   body: JSON.stringify({ comments })
-  });
-
-  textInput.value = '';
-  fetchComments();
- } catch(err) {
-  alert('Có lỗi khi gửi bình luận, vui lòng thử lại sau!');
- } finally {
-  submitBtn.textContent = 'Gửi lời nhắn';
-  submitBtn.disabled = false;
- }
-});
-
-fetchComments();
-
 // Code điều khiển nhạc SoundCloud & Màn hình chào mừng
 const frame = document.getElementById('sc-widget');
 const widget = SC.Widget(frame);
