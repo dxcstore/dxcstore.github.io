@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cờ Vua Online & Đấu Bot</title>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+<style>
+  * { box-sizing: border-box; user-select: none; }
+  body {
+    margin: 0; min-height: 100vh;
+    background: radial-gradient(circle at top, #1e222d, #0f1117);
+    color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px;
+  }
+  h1 { margin: 0 0 10px; font-size: 22px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+
+  /* Ô nhập tên */
+  .name-box {
+    display: flex; gap: 8px; width: min(450px, 100%); margin-bottom: 8px; align-items: center;
+    background: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .name-box label { font-size: 13px; font-weight: bold; color: #aaa; white-space: nowrap; }
+
+  /* Nút chọn chế độ */
+  .mode-bar {
+    display: flex; gap: 8px; width: min(450px, 100%); margin-bottom: 8px;
+  }
+  .mode-btn {
+    flex: 1; padding: 9px; border-radius: 8px; border: none;
+    background: rgba(255,255,255,0.08); color: #fff; font-weight: bold;
+    font-size: 13px; cursor: pointer; transition: all 0.2s;
+  }
+  .mode-btn:hover { background: rgba(255,255,255,0.16); }
+  .mode-btn.bot { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .mode-btn.quick { background: linear-gradient(135deg, #f59e0b, #d97706); color: #111; }
+
+  .lobby {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px; padding: 10px 14px;
+    width: min(450px, 100%); margin-bottom: 10px;
+    backdrop-filter: blur(10px);
+  }
+  .row { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; }
+  .row:last-child { margin-bottom: 0; }
+  input {
+    flex: 1; padding: 7px 10px; border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.4); color: #fff;
+    font-size: 13px; outline: none;
+  }
+  button.action {
+    padding: 7px 12px; border-radius: 8px; border: 0;
+    background: #38ef7d; color: #0a140e; font-weight: bold;
+    font-size: 13px; cursor: pointer; transition: transform 0.15s;
+    white-space: nowrap;
+  }
+  button.action:hover { opacity: 0.9; }
+  button.secondary {
+    padding: 7px 12px; border-radius: 8px; border: 0;
+    background: rgba(255,255,255,0.15); color: #fff;
+    font-weight: bold; font-size: 13px; cursor: pointer;
+  }
+  button.secondary:hover { background: rgba(255,255,255,0.25); }
+
+  .status-bar {
+    font-size: 13px; font-weight: bold; margin-bottom: 8px;
+    padding: 7px 12px; border-radius: 14px;
+    background: rgba(255,255,255,0.08);
+    text-align: center; width: min(450px, 100%);
+  }
+
+  /* Khung bàn cờ phong cách Chess.com chuẩn sắc nét */
+  .board-wrapper {
+    background: #262421;
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    width: min(440px, 90vw);
+    height: min(440px, 90vw);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .square {
+    display: flex; align-items: center; justify-content: center;
+    position: relative; cursor: pointer;
+  }
+  .light { background: #eeeed2; }
+  .dark { background: #769656; }
+  
+  /* Quân cờ chuẩn SVG sắc nét */
+  .piece {
+    width: 88%; height: 88%;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 2; pointer-events: none;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4));
+  }
+
+  /* Tọa độ ô cờ */
+  .coord-rank {
+    position: absolute; top: 2px; left: 3px;
+    font-size: 10px; font-weight: bold; pointer-events: none; z-index: 3;
+  }
+  .coord-file {
+    position: absolute; bottom: 1px; right: 3px;
+    font-size: 10px; font-weight: bold; pointer-events: none; z-index: 3;
+  }
+  .light-coord { color: #769656; }
+  .dark-coord { color: #eeeed2; }
+
+  /* Hiệu ứng nước đi */
+  .selected { background: #baca44 !important; }
+  .last-move { background: rgba(245, 246, 130, 0.6) !important; }
+  .hint::after {
+    content: ""; width: 26%; height: 26%;
+    background: rgba(0, 0, 0, 0.25); border-radius: 50%;
+    position: absolute; z-index: 4;
+  }
+  .hint-capture::after {
+    content: ""; width: 84%; height: 84%;
+    border: 4px solid rgba(0, 0, 0, 0.25); border-radius: 50%;
+    position: absolute; box-sizing: border-box; z-index: 4;
+  }
+  .in-check { background: radial-gradient(circle, #ff4757 20%, transparent 80%) !important; }
+
+  /* Thanh điều khiển phụ (Chịu thua / Hòa) */
+  .control-bar {
+    display: flex; gap: 8px; width: min(450px, 100%); margin-top: 10px;
+  }
+  .control-btn {
+    flex: 1; padding: 8px; border-radius: 8px; border: none;
+    font-weight: bold; font-size: 13px; cursor: pointer; transition: opacity 0.2s;
+  }
+  .surrender-btn { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+  .surrender-btn:hover { background: rgba(239, 68, 68, 0.35); }
+  .draw-btn { background: rgba(234, 179, 8, 0.2); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.4); }
+  .draw-btn:hover { background: rgba(234, 179, 8, 0.35); }
+</style>
+</head>
+<body>
+
+  <h1>♟️ Cờ Vua Online & Đấu Bot</h1>
+
+  <!-- Nhập tên người chơi -->
+  <div class="name-box">
+    <label>Tên bạn:</label>
+    <input type="text" id="player-name" value="Kỳ thủ" placeholder="Nhập tên của bạn...">
+  </div>
+
+  <!-- Chọn chế độ nhanh -->
+  <div class="mode-bar">
+    <button class="mode-btn bot" onclick="startBotMode()">🤖 Đấu với Bot</button>
+    <button class="mode-btn quick" onclick="startQuickMatch()">⚡ Ghép trận nhanh</button>
+  </div>
+
+  <!-- Sảnh tạo phòng / vào phòng -->
+  <div class="lobby">
+    <div class="row">
+      <input type="text" id="my-id" readonly value="Đang tạo mã phòng...">
+      <button class="secondary" onclick="copyId()">Copy mã</button>
+    </div>
+    <div class="row">
+      <input type="text" id="peer-id-input" placeholder="Nhập mã phòng của bạn bè...">
+      <button class="action" onclick="joinRoom()">Vào phòng</button>
+    </div>
+  </div>
+
+  <div class="status-bar" id="status">Chọn chế độ hoặc nhập tên để bắt đầu!</div>
+
+  <div class="board-wrapper">
+    <div class="board" id="board"></div>
+  </div>
+
+  <!-- Thay nút Ván mới bằng Chịu thua và Hòa cờ -->
+  <div class="control-bar">
+    <button class="control-btn surrender-btn" onclick="surrenderGame()">🏳️ Chịu thua</button>
+    <button class="control-btn draw-btn" onclick="offerDraw()">🤝 Xin hòa</button>
+  </div>
+
+<script>
+  const game = new Chess();
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const myIdInput = document.getElementById('my-id');
+  const playerNameInput = document.getElementById('player-name');
+
+  // Sử dụng hình ảnh quân cờ SVG chuẩn từ Wikipedia/Chess.com cực kỳ sắc nét
+  const pieceImages = {
+    w: { p: 'wp', r: 'wr', n: 'wn', b: 'wb', q: 'wq', k: 'wk' },
+    b: { p: 'bp', r: 'br', n: 'bn', b: 'bb', q: 'bq', k: 'bk' }
+  };
+  function getPieceImageUrl(color, type) {
+    return `https://chessboardjs.com/img/chesspieces/wikipedia/${pieceImages[color][type]}.png`;
+  }
+
+  let peer = null;
+  let conn = null;
+  let gameMode = 'pvp';
+  let myColor = 'w';
+  let selectedSquare = null;
+  let legalMoves = [];
+  let lastMove = null;
+
+  function initPeer(customId = null, onReady = null) {
+    if (peer) { peer.destroy(); }
+    const idToUse = customId || ('cv-' + Math.random().toString(36).substring(2, 7));
+    peer = new Peer(idToUse);
+
+    peer.on('open', (id) => {
+      myIdInput.value = id;
+      if (onReady) onReady(id);
+    });
+
+    peer.on('connection', (connection) => {
+      if (conn) { connection.close(); return; }
+      gameMode = 'pvp';
+      conn = connection;
+      myColor = 'w';
+      setupConnection();
+      game.reset();
+      lastMove = null;
+      statusEl.textContent = "Đối thủ đã kết nối! Lượt của bạn (Quân Trắng)";
+      renderBoard();
+    });
+
+    peer.on('error', (err) => {
+      if (err.type === 'peer-unavailable' && customId === 'quick-match-lobby-host-v1') {
+        createQuickMatchHost();
+      } else if (err.type === 'unavailable-id' && customId === 'quick-match-lobby-host-v1') {
+        joinQuickMatchHost();
+      }
+    });
+  }
+
+  // Chế độ Bot
+  function startBotMode() {
+    if (conn) { conn.close(); conn = null; }
+    gameMode = 'bot';
+    myColor = 'w';
+    game.reset();
+    lastMove = null;
+    selectedSquare = null;
+    legalMoves = [];
+    const name = playerNameInput.value.trim() || 'Kỳ thủ';
+    statusEl.textContent = `🤖 ${name} đang đấu với Bot (Quân Trắng)`;
+    renderBoard();
+  }
+
+  const pieceValues = { p: 10, n: 32, b: 33, r: 50, q: 90, k: 900 };
+  function evaluateBoard(chessObj) {
+    let total = 0;
+    const b = chessObj.board();
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = b[r][c];
+        if (p) {
+          const val = pieceValues[p.type] || 0;
+          total += (p.color === 'b' ? val : -val);
+        }
+      }
+    }
+    return total;
+  }
+
+  function makeBotMove() {
+    if (game.game_over() || gameMode !== 'bot') return;
+    const moves = game.moves({ verbose: true });
+    if (moves.length === 0) return;
+
+    let bestMove = null;
+    let bestScore = -99999;
+    moves.sort(() => Math.random() - 0.5);
+
+    for (const move of moves) {
+      game.move(move);
+      let score = evaluateBoard(game);
+      if (game.in_checkmate()) {
+        score = 99999;
+      } else {
+        const playerMoves = game.moves({ verbose: true });
+        let worstReply = 99999;
+        for (const pMove of playerMoves) {
+          game.move(pMove);
+          const replyScore = evaluateBoard(game);
+          if (replyScore < worstReply) worstReply = replyScore;
+          game.undo();
+        }
+        if (playerMoves.length > 0) score = worstReply;
+      }
+      game.undo();
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+      }
+    }
+
+    if (bestMove) {
+      const res = game.move(bestMove);
+      lastMove = { from: res.from, to: res.to };
+      updateStatus();
+      renderBoard();
+    }
+  }
+
+  // Ghép trận nhanh
+  const QUICK_ROOM_ID = 'dxc-chess-quick-lobby-999';
+  function startQuickMatch() {
+    if (conn) { conn.close(); conn = null; }
+    gameMode = 'pvp';
+    statusEl.textContent = "⚡ Đang tìm đối thủ ngẫu nhiên...";
+    if (!peer || peer.destroyed) {
+      initPeer(null, () => tryConnectQuick());
+    } else {
+      tryConnectQuick();
+    }
+  }
+
+  function tryConnectQuick() {
+    const testConn = peer.connect(QUICK_ROOM_ID);
+    let connected = false;
+    const timeout = setTimeout(() => {
+      if (!connected) {
+        testConn.close();
+        becomeQuickHost();
+      }
+    }, 2500);
+
+    testConn.on('open', () => {
+      connected = true;
+      clearTimeout(timeout);
+      conn = testConn;
+      myColor = 'b';
+      setupConnection();
+      game.reset();
+      lastMove = null;
+      statusEl.textContent = "⚡ Đã ghép trận! Đợi đối thủ đi trước (Bạn cầm Đen)";
+      renderBoard();
+    });
+
+    testConn.on('error', () => {
+      clearTimeout(timeout);
+      becomeQuickHost();
+    });
+  }
+
+  function becomeQuickHost() {
+    statusEl.textContent = "⚡ Đang mở sảnh chờ đối thủ...";
+    if (peer) peer.destroy();
+    peer = new Peer(QUICK_ROOM_ID);
+    peer.on('open', () => { myIdInput.value = "Sảnh ghép nhanh"; });
+    peer.on('connection', (connection) => {
+      if (conn) { connection.close(); return; }
+      conn = connection;
+      myColor = 'w';
+      setupConnection();
+      game.reset();
+      lastMove = null;
+      statusEl.textContent = "⚡ Tìm thấy đối thủ! Lượt của bạn (Quân Trắng)";
+      renderBoard();
+    });
+  }
+
+  function joinRoom() {
+    const targetId = document.getElementById('peer-id-input').value.trim();
+    if (!targetId) return alert("Vui lòng nhập mã phòng!");
+    gameMode = 'pvp';
+    conn = peer.connect(targetId);
+    myColor = 'b';
+    setupConnection();
+  }
+
+  function setupConnection() {
+    conn.on('open', () => {
+      updateStatus();
+      renderBoard();
+    });
+    conn.on('data', (data) => {
+      if (data.type === 'move') {
+        game.move(data.move);
+        lastMove = { from: data.move.from, to: data.move.to };
+        selectedSquare = null;
+        legalMoves = [];
+        updateStatus();
+        renderBoard();
+      } else if (data.type === 'surrender') {
+        alert("Đối thủ đã đầu hàng! Bạn giành chiến thắng.");
+        game.reset();
+        renderBoard();
+      } else if (data.type === 'draw_offer') {
+        if (confirm("Đối thủ muốn xin hòa. Bạn đồng ý chứ?")) {
+          conn.send({ type: 'draw_accept' });
+          alert("Ván cờ hòa!");
+          game.reset();
+          renderBoard();
+        }
+      } else if (data.type === 'draw_accept') {
+        alert("Đối thủ đã đồng ý hòa!");
+        game.reset();
+        renderBoard();
+      }
+    });
+    conn.on('close', () => {
+      statusEl.textContent = "Đối thủ đã thoát trận!";
+      conn = null;
+    });
+  }
+
+  function copyId() {
+    myIdInput.select();
+    document.execCommand('copy');
+    alert("Đã copy mã phòng: " + myIdInput.value);
+  }
+
+  // Chức năng Chịu thua
+  function surrenderGame() {
+    if (gameMode === 'bot') {
+      if (confirm("Bạn có chắc chắn muốn chịu thua Bot không?")) {
+        alert("Bạn đã chịu thua!");
+        startBotMode();
+      }
+      return;
+    }
+    if (!conn || !conn.open) return alert("Chưa kết nối với đối thủ!");
+    if (confirm("Bạn có chắc chắn muốn đầu hàng?")) {
+      conn.send({ type: 'surrender' });
+      alert("Bạn đã chịu thua!");
+      game.reset();
+      renderBoard();
+    }
+  }
+
+  // Chức năng Xin hòa
+  function offerDraw() {
+    if (gameMode === 'bot') {
+      alert("Bot không chấp nhận hòa đâu, hãy chiến đấu tiếp nhé!");
+      return;
+    }
+    if (!conn || !conn.open) return alert("Chưa kết nối với đối thủ!");
+    conn.send({ type: 'draw_offer' });
+    alert("Đã gửi lời đề nghị hòa đến đối thủ!");
+  }
+
+  function renderBoard() {
+    boardEl.innerHTML = '';
+    const boardData = game.board();
+    const isFlipped = (myColor === 'b');
+
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const row = isFlipped ? 7 - r : r;
+        const col = isFlipped ? 7 - c : c;
+        const fileChar = String.fromCharCode(97 + col);
+        const rankNum = 8 - row;
+        const squareName = fileChar + rankNum;
+        const piece = boardData[row][col];
+
+        const sqDiv = document.createElement('div');
+        const isLight = (row + col) % 2 === 0;
+        sqDiv.className = `square ${isLight ? 'light' : 'dark'}`;
+
+        if (selectedSquare === squareName) sqDiv.classList.add('selected');
+        if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
+          sqDiv.classList.add('last-move');
+        }
+
+        const moveHint = legalMoves.find(m => m.to === squareName);
+        if (moveHint) {
+          sqDiv.classList.add(piece ? 'hint-capture' : 'hint');
+        }
+
+        if (col === 0) {
+          const rankSpan = document.createElement('span');
+          rankSpan.className = `coord-rank ${isLight ? 'light-coord' : 'dark-coord'}`;
+          rankSpan.textContent = rankNum;
+          sqDiv.appendChild(rankSpan);
+        }
+        if (row === 7) {
+          const fileSpan = document.createElement('span');
+          fileSpan.className = `coord-file ${isLight ? 'light-coord' : 'dark-coord'}`;
+          fileSpan.textContent = fileChar;
+          sqDiv.appendChild(fileSpan);
+        }
+
+        if (piece) {
+          const pieceDiv = document.createElement('div');
+          pieceDiv.className = 'piece';
+          pieceDiv.style.backgroundImage = `url('${getPieceImageUrl(piece.color, piece.type)}')`;
+          sqDiv.appendChild(pieceDiv);
+
+          if (piece.type === 'k' && piece.color === game.turn() && game.in_check()) {
+            sqDiv.classList.add('in-check');
+          }
+        }
+
+        sqDiv.onclick = () => onSquareClick(squareName);
+        boardEl.appendChild(sqDiv);
+      }
+    }
+  }
+
+  function onSquareClick(square) {
+    if (gameMode === 'pvp' && (!conn || !conn.open)) {
+      alert("Hãy chọn 'Đấu với Bot', 'Ghép trận nhanh' hoặc nhập mã phòng để chơi nhé!");
+      return;
+    }
+    if (game.game_over()) return;
+    if (game.turn() !== myColor) return;
+
+    const moveAttempt = legalMoves.find(m => m.to === square);
+    if (moveAttempt) {
+      const moveObj = { from: selectedSquare, to: square, promotion: 'q' };
+      const result = game.move(moveObj);
+      if (result) {
+        lastMove = { from: result.from, to: result.to };
+        selectedSquare = null;
+        legalMoves = [];
+        updateStatus();
+        renderBoard();
+
+        if (gameMode === 'bot') {
+          setTimeout(makeBotMove, 450);
+        } else if (conn && conn.open) {
+          conn.send({ type: 'move', move: moveObj });
+        }
+        return;
+      }
+    }
+
+    const piece = game.get(square);
+    const name = playerNameInput.value.trim() || 'Bạn';
+    if (piece && piece.color === myColor) {
+      selectedSquare = square;
+      legalMoves = game.moves({ square: square, verbose: true });
+    } else {
+      selectedSquare = null;
+      legalMoves = [];
+    }
+    renderBoard();
+  }
+
+  function updateStatus() {
+    if (game.in_checkmate()) {
+      const winner = game.turn() === 'w' ? 'Đen' : 'Trắng';
+      statusEl.textContent = `🏆 Chiếu bí! Quân ${winner} giành chiến thắng!`;
+      return;
+    }
+    if (game.in_draw()) {
+      statusEl.textContent = "🤝 Ván cờ Hòa!";
+      return;
+    }
+
+    const turnName = game.turn() === 'w' ? 'Trắng' : 'Đen';
+    const isMyTurn = game.turn() === myColor;
+    const checkText = game.in_check() ? " (ĐANG BỊ CHIẾU!)" : "";
+    const name = playerNameInput.value.trim() || 'Bạn';
+
+    statusEl.textContent = isMyTurn
+      ? `🟢 Lượt của ${name} (Quân ${turnName})${checkText}`
+      : `⏳ Đợi đối thủ đi (Quân ${turnName})${checkText}`;
+  }
+
+  initPeer();
+  renderBoard();
+</script>
+</body>
+</html>
