@@ -370,7 +370,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
   <div class="chat-messages-list" id="chat-messages-container">
    <div class="chat-msg-item">
     <div class="chat-msg-author">DXC STORE</div>
-    <div class="chat-msg-text">Đang kết nối phòng chat trực tuyến...</div>
+    <div class="chat-msg-text">Đang kết nối đám mây chung...</div>
    </div>
   </div>
   <div class="chat-input-area">
@@ -461,7 +461,7 @@ const chatCloseBtn = document.getElementById('chat-close-btn');
 const badgeCount = document.getElementById('chat-badge-count');
 
 let unreadCount = 0;
-let lastMsgLen = 0;
+let lastMsgCount = 0;
 
 chatToggleBtn.addEventListener('click', () => {
  const isVisible = chatPopupBox.style.display === 'flex';
@@ -479,7 +479,7 @@ chatCloseBtn.addEventListener('click', () => {
  chatPopupBox.style.display = 'none';
 });
 
-// --- HỆ THỐNG CHAT ĐỒNG BỘ ĐÁM MÂY AN TOÀN ---
+// --- HỆ THỐNG CHAT ĐỒNG BỘ ĐÁM MÂY DÙNG ABACUS ---
 const loginView = document.getElementById('chat-login-view');
 const mainView = document.getElementById('chat-main-view');
 const usernameInput = document.getElementById('chat-username-input');
@@ -507,31 +507,38 @@ loginBtn.addEventListener('click', () => {
  mainView.style.display = 'flex';
 });
 
-// Sử dụng chung LocalStorage kết hợp API sync nhẹ nhàng chống lỗi kết nối đám mây
-function getCloudMessages() {
+const ABACUS_BASE = "https://abacus.jasoncameron.dev";
+const NS = "dxcstore_github_io";
+
+async function getCloudChat() {
  try {
-  const data = localStorage.getItem('dxc_live_chat_sync');
-  if (data) return JSON.parse(data);
- } catch(e){}
- return [
-  { author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng chung! 🎉' }
- ];
+  const res = await fetch(`${ABACUS_BASE}/get/${NS}/chat_data_v1`, { cache: "no-store" });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (data && data.value) {
+   return JSON.parse(decodeURIComponent(data.value));
+  }
+ } catch (e) {}
+ return null;
 }
 
-function saveCloudMessages(msgs) {
+async function saveCloudChat(msgs) {
  try {
-  localStorage.setItem('dxc_live_chat_sync', JSON.stringify(msgs));
-  // Đồng thời lưu vào LocalStorage chung để các tab tự bắt sự kiện
-  localStorage.setItem('dxc_chat_trigger', Date.now().toString());
- } catch(e){}
+  const jsonStr = encodeURIComponent(JSON.stringify(msgs));
+  await fetch(`${ABACUS_BASE}/set/${NS}/chat_data_v1/${jsonStr}`, { cache: "no-store" });
+ } catch (e) {}
 }
 
-function updateChat(isInitial = false) {
- let msgs = getCloudMessages();
- renderMessages(msgs, isInitial);
+async function refreshChat(isInitial = false) {
+ let msgs = await getCloudChat();
+ if (!msgs || !Array.isArray(msgs) || msgs.length === 0) {
+  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉' }];
+  if (isInitial) await saveCloudChat(msgs);
+ }
+ renderChatUI(msgs, isInitial);
 }
 
-function renderMessages(msgs, isInitial = false) {
+function renderChatUI(msgs, isInitial = false) {
  messagesContainer.innerHTML = '';
  msgs.forEach(m => {
   const div = document.createElement('div');
@@ -541,16 +548,16 @@ function renderMessages(msgs, isInitial = false) {
  });
  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
- if (!isInitial && msgs.length > lastMsgLen) {
+ if (!isInitial && msgs.length > lastMsgCount) {
   if (chatPopupBox.style.display !== 'flex') {
-   unreadCount += (msgs.length - lastMsgLen);
+   unreadCount += (msgs.length - lastMsgCount);
    badgeCount.textContent = unreadCount;
    badgeCount.style.display = 'block';
    chatToggleBtn.classList.add('new-msg');
   }
  }
- lastMsgLen = msgs.length;
- badgeCount.textContent = lastMsgLen;
+ lastMsgCount = msgs.length;
+ badgeCount.textContent = lastMsgCount;
 }
 
 function escapeHtml(text) {
@@ -563,7 +570,7 @@ messageInput.addEventListener('keypress', (e) => {
  if (e.key === 'Enter') sendMessage();
 });
 
-function sendMessage() {
+async function sendMessage() {
  const text = messageInput.value.trim();
  if (!text) return;
  if (!currentUser) {
@@ -571,23 +578,19 @@ function sendMessage() {
   return;
  }
 
- let msgs = getCloudMessages();
+ sendBtn.disabled = true;
+ let msgs = (await getCloudChat()) || [];
  msgs.push({ author: currentUser, text: text });
- saveCloudMessages(msgs);
+ await saveCloudChat(msgs);
  
  messageInput.value = '';
- renderMessages(msgs);
+ renderChatUI(msgs);
+ sendBtn.disabled = false;
 }
 
-// Khởi chạy tải tin nhắn
-updateChat(true);
-
-// Lắng nghe sự kiện đồng bộ giữa các tab và máy
-window.addEventListener('storage', (e) => {
- if (e.key === 'dxc_chat_trigger' || e.key === 'dxc_live_chat_sync') {
-  updateChat(false);
- }
-});
+// Khởi chạy tải tin nhắn và tự động đồng bộ từ mây mỗi 3 giây
+refreshChat(true);
+setInterval(() => refreshChat(false), 3000);
 
 // --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
 const enterScreen = document.getElementById('enter-screen');
@@ -600,9 +603,6 @@ enterScreen.addEventListener('click', () => {
 });
 
 // --- BỘ ĐẾM VIEW & TIM ---
-const ABACUS_BASE = "https://abacus.jasoncameron.dev";
-const NS = "dxcstore_github_io";
-
 async function fetchAbacus(action, key) {
  try {
   const res = await fetch(`${ABACUS_BASE}/${action}/${NS}/${key}`, { cache: "no-store" });
