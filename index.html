@@ -207,178 +207,6 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 .play svg{width:18px;height:18px;fill:currentColor}
 
-/* --- ICON CHAT NỔI Ở GÓC TRÁI --- */
-.chat-float-btn {
- position: fixed;
- bottom: 25px;
- left: 25px;
- z-index: 9999;
- width: 50px;
- height: 50px;
- background: rgba(30, 30, 30, 0.85);
- border: 1px solid rgba(255, 255, 255, 0.25);
- border-radius: 12px;
- display: grid;
- place-items: center;
- cursor: pointer;
- backdrop-filter: blur(10px);
- box-shadow: 0 8px 25px rgba(0,0,0,0.5);
- transition: transform 0.2s, background 0.2s;
-}
-.chat-float-btn:hover { transform: scale(1.08); background: rgba(50, 50, 50, 0.95); }
-.chat-float-btn svg { width: 22px; height: 22px; fill: #fff; }
-
-@keyframes messengerBounce {
- 0%, 100% { transform: translateY(0); }
- 20%, 60% { transform: translateY(-6px) scale(1.1); }
- 40%, 80% { transform: translateY(-3px) scale(1.05); }
-}
-.chat-float-btn.new-msg {
- animation: messengerBounce 0.6s ease infinite;
- border-color: #ff4757;
-}
-
-.chat-badge {
- position: absolute;
- top: -6px;
- right: -6px;
- background: #ff4757;
- color: #fff;
- font-size: 11px;
- font-weight: bold;
- padding: 2px 6px;
- border-radius: 10px;
- border: 1px solid rgba(255,255,255,0.3);
- display: none;
-}
-
-/* --- POPUP KHUNG CHAT CỘNG ĐỒNG --- */
-.chat-popup {
- position: fixed;
- bottom: 85px;
- left: 25px;
- z-index: 99999;
- width: 340px;
- height: 460px;
- background: rgba(18, 18, 18, 0.88);
- border: 1px solid rgba(255, 255, 255, 0.18);
- border-radius: 16px;
- backdrop-filter: blur(16px);
- -webkit-backdrop-filter: blur(16px);
- box-shadow: 0 15px 45px rgba(0,0,0,0.7);
- display: none;
- flex-direction: column;
- overflow: hidden;
- animation: popUpIn 0.25s ease;
-}
-@keyframes popUpIn {
- from { opacity: 0; transform: translateY(15px) scale(0.95); }
- to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.chat-header {
- padding: 12px 16px;
- background: rgba(255, 255, 255, 0.05);
- border-bottom: 1px solid rgba(255, 255, 255, 0.1);
- display: flex;
- align-items: center;
- justify-content: space-between;
- font-weight: bold;
- font-size: 14px;
-}
-.chat-header-left { display: flex; align-items: center; gap: 8px; }
-.chat-header-left svg { width: 16px; height: 16px; fill: #fff; }
-.chat-close { background: none; border: 0; color: #aaa; cursor: pointer; font-size: 16px; transition: color 0.2s; }
-.chat-close:hover { color: #fff; }
-
-/* Màn hình nhập tên */
-.chat-login-screen {
- flex: 1;
- display: flex;
- flex-direction: column;
- align-items: center;
- justify-content: center;
- padding: 24px;
- text-align: center;
-}
-.chat-login-icon {
- width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.08);
- display: grid; place-items: center; margin-bottom: 14px;
- border: 1px solid rgba(255,255,255,0.15);
-}
-.chat-login-icon svg { width: 28px; height: 28px; fill: #aaa; }
-.chat-login-screen p { font-size: 12px; color: #aaa; margin: 0 0 14px; }
-.chat-name-input {
- width: 100%; padding: 10px 14px; border-radius: 10px;
- background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
- color: #fff; font-size: 13px; outline: none; margin-bottom: 12px;
- text-align: center;
-}
-.chat-login-btn {
- width: 100%; padding: 10px; border-radius: 10px; border: 0;
- background: rgba(255,255,255,0.15); color: #fff; font-weight: bold;
- font-size: 13px; cursor: pointer; transition: background 0.2s;
- border: 1px solid rgba(255,255,255,0.25);
-}
-.chat-login-btn:hover { background: rgba(255,255,255,0.25); }
-
-/* Màn hình nhắn tin chính */
-.chat-messages-screen {
- flex: 1;
- display: none;
- flex-direction: column;
- overflow: hidden;
-}
-.chat-messages-list {
- flex: 1;
- padding: 12px;
- overflow-y: auto;
- display: flex;
- flex-direction: column;
- gap: 8px;
- scrollbar-width: thin;
-}
-.chat-msg-item {
- background: rgba(255,255,255,0.06);
- padding: 8px 12px;
- border-radius: 10px;
- font-size: 13px;
- border: 1px solid rgba(255,255,255,0.08);
- word-break: break-word;
-}
-.chat-msg-author { font-size: 11px; color: #38ef7d; font-weight: bold; margin-bottom: 2px; }
-.chat-msg-text { color: #eee; }
-
-.chat-input-area {
- padding: 10px;
- background: rgba(0,0,0,0.3);
- border-top: 1px solid rgba(255,255,255,0.1);
- display: flex;
- gap: 8px;
-}
-.chat-text-input {
- flex: 1;
- padding: 8px 12px;
- border-radius: 10px;
- background: rgba(0,0,0,0.5);
- border: 1px solid rgba(255,255,255,0.2);
- color: #fff;
- font-size: 13px;
- outline: none;
-}
-.chat-send-btn {
- padding: 8px 16px;
- border-radius: 10px;
- border: 0;
- background: #fff;
- color: #111;
- font-weight: bold;
- font-size: 13px;
- cursor: pointer;
- transition: background 0.2s;
-}
-.chat-send-btn:hover { background: #eee; }
-
 #sc-widget{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px}
 
 @media(max-width:560px){
@@ -388,60 +216,18 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  .cover{width:72px;height:72px}
  .track-title{font-size:17px}
  .controls{gap:8px}
- .chat-popup { width: calc(100vw - 30px); left: 15px; bottom: 80px; }
 }
 </style>
 </head>
 <body oncontextmenu="return false;">
 
-<!-- Màn hình chào mừng yêu cầu click -->
+<!-- Màn hình chờ click để vào web -->
 <div id="enter-screen">
  <h1>click de vao trong nhee</h1>
  <p>hello</p>
 </div>
 
 <div class="rain"></div>
-
-<!-- Nút Icon Chat nổi ở góc trái -->
-<div class="chat-float-btn" id="chat-toggle-btn" title="Mở chat cộng đồng">
- <span class="chat-badge" id="chat-badge-count">0</span>
- <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-</div>
-
-<!-- Popup Khung Chat Cộng Đồng -->
-<div class="chat-popup" id="chat-popup-box">
- <div class="chat-header">
-  <div class="chat-header-left">
-   <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-   <span>Chat cộng đồng toàn cầu</span>
-  </div>
-  <button class="chat-close" id="chat-close-btn">✕</button>
- </div>
-
- <!-- Màn hình 1: Nhập tên để vào chat -->
- <div class="chat-login-screen" id="chat-login-view">
-  <div class="chat-login-icon">
-   <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-  </div>
-  <p>Nhập tên hiển thị để tham gia chat</p>
-  <input type="text" class="chat-name-input" id="chat-username-input" placeholder="Tên của bạn...">
-  <button class="chat-login-btn" id="chat-login-submit">Vào chat →</button>
- </div>
-
- <!-- Màn hình 2: Giao diện nhắn tin chính -->
- <div class="chat-messages-screen" id="chat-main-view">
-  <div class="chat-messages-list" id="chat-messages-container">
-   <div class="chat-msg-item">
-    <div class="chat-msg-author">DXC STORE</div>
-    <div class="chat-msg-text">Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉</div>
-   </div>
-  </div>
-  <div class="chat-input-area">
-   <input type="text" class="chat-text-input" id="chat-message-input" placeholder="Nhắn tin...">
-   <button class="chat-send-btn" id="chat-send-btn">Gửi</button>
-  </div>
- </div>
-</div>
 
 <main>
  <section class="panel profile">
@@ -519,7 +305,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
-// --- HIỆU ỨNG GÕ CHỮ & XÓA CHỮ TRÊN TIÊU ĐỀ TRÌNH DUYỆT (Chỉ chạy chuỗi duy nhất) ---
+// --- HIỆU ỨNG GÕ CHỮ TRÊN TIÊU ĐỀ TRÌNH DUYỆT ---
 const browserTitle = document.getElementById('browser-title');
 const textArray = ["Chính Ok là tớ ><"];
 let textIndex = 0;
@@ -542,7 +328,7 @@ function typeEffect() {
 
  if (!isDeleting && charIndex === currentText.length) {
   isDeleting = true;
-  typingSpeed = 2000; // Dừng lại 2 giây khi gõ xong
+  typingSpeed = 2000;
  } else if (isDeleting && charIndex === 0) {
   isDeleting = false;
   typingSpeed = 500;
@@ -551,144 +337,6 @@ function typeEffect() {
  setTimeout(typeEffect, typingSpeed);
 }
 setTimeout(typeEffect, 1000);
-
-// --- XỬ LÝ MỞ / ĐÓNG POPUP CHAT ---
-const chatToggleBtn = document.getElementById('chat-toggle-btn');
-const chatPopupBox = document.getElementById('chat-popup-box');
-const chatCloseBtn = document.getElementById('chat-close-btn');
-const badgeCount = document.getElementById('chat-badge-count');
-
-let unreadCount = 0;
-let lastMsgCount = 0;
-
-chatToggleBtn.addEventListener('click', () => {
- const isVisible = chatPopupBox.style.display === 'flex';
- if (!isVisible) {
-  chatPopupBox.style.display = 'flex';
-  unreadCount = 0;
-  badgeCount.style.display = 'none';
-  chatToggleBtn.classList.remove('new-msg');
- } else {
-  chatPopupBox.style.display = 'none';
- }
-});
-
-chatCloseBtn.addEventListener('click', () => {
- chatPopupBox.style.display = 'none';
-});
-
-// --- HỆ THỐNG CHAT ĐÁM MÂY TOÀN CẦU ---
-const loginView = document.getElementById('chat-login-view');
-const mainView = document.getElementById('chat-main-view');
-const usernameInput = document.getElementById('chat-username-input');
-const loginBtn = document.getElementById('chat-login-submit');
-const messageInput = document.getElementById('chat-message-input');
-const sendBtn = document.getElementById('chat-send-btn');
-const messagesContainer = document.getElementById('chat-messages-container');
-
-let currentUser = localStorage.getItem('dxc_chat_user') || '';
-
-if (currentUser) {
- loginView.style.display = 'none';
- mainView.style.display = 'flex';
-}
-
-loginBtn.addEventListener('click', () => {
- const name = usernameInput.value.trim();
- if (!name) {
-  alert('Vui lòng nhập tên của bạn!');
-  return;
- }
- currentUser = name;
- localStorage.setItem('dxc_chat_user', currentUser);
- loginView.style.display = 'none';
- mainView.style.display = 'flex';
-});
-
-const ABACUS_BASE = "https://abacus.jasoncameron.dev";
-const NS = "dxcstore_github_io";
-
-async function getGlobalMessages() {
- try {
-  const res = await fetch(`${ABACUS_BASE}/get/${NS}/global_chat_pool`, { cache: "no-store" });
-  if (!res.ok) return null;
-  const data = await res.json();
-  if (data && data.value) {
-   return JSON.parse(decodeURIComponent(data.value));
-  }
- } catch(e){}
- return null;
-}
-
-async function saveGlobalMessages(msgs) {
- try {
-  if (msgs.length > 30) msgs = msgs.slice(msgs.length - 30);
-  const encoded = encodeURIComponent(JSON.stringify(msgs));
-  await fetch(`${ABACUS_BASE}/set/${NS}/global_chat_pool/${encoded}`, { cache: "no-store" });
- } catch(e){}
-}
-
-async function syncCloudChat(isInitial = false) {
- let msgs = await getGlobalMessages();
- if (!msgs || !Array.isArray(msgs) || msgs.length === 0) {
-  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
-  if (isInitial) await saveGlobalMessages(msgs);
- }
- renderChatUI(msgs, isInitial);
-}
-
-function renderChatUI(msgs, isInitial = false) {
- messagesContainer.innerHTML = '';
- msgs.forEach(m => {
-  const div = document.createElement('div');
-  div.className = 'chat-msg-item';
-  div.innerHTML = `<div class="chat-msg-author">${escapeHtml(m.author)}</div><div class="chat-msg-text">${escapeHtml(m.text)}</div>`;
-  messagesContainer.appendChild(div);
- });
- messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
- if (!isInitial && msgs.length > lastMsgCount) {
-  if (chatPopupBox.style.display !== 'flex') {
-   unreadCount += (msgs.length - lastMsgCount);
-   badgeCount.textContent = unreadCount;
-   badgeCount.style.display = 'block';
-   chatToggleBtn.classList.add('new-msg');
-  }
- }
- lastMsgCount = msgs.length;
- badgeCount.textContent = lastMsgCount;
-}
-
-function escapeHtml(text) {
- const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
- return text.replace(/[&<>"']/g, m => map[m]);
-}
-
-sendBtn.addEventListener('click', sendMessage);
-messageInput.addEventListener('keypress', (e) => {
- if (e.key === 'Enter') sendMessage();
-});
-
-async function sendMessage() {
- const text = messageInput.value.trim();
- if (!text) return;
- if (!currentUser) {
-  alert('Vui lòng đăng nhập tên trước!');
-  return;
- }
-
- sendBtn.disabled = true;
- let msgs = (await getGlobalMessages()) || [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
- msgs.push({ author: currentUser, text: text });
- await saveGlobalMessages(msgs);
- 
- messageInput.value = '';
- renderChatUI(msgs);
- sendBtn.disabled = false;
-}
-
-syncCloudChat(true);
-setInterval(() => syncCloudChat(false), 3000);
 
 // --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
 const enterScreen = document.getElementById('enter-screen');
@@ -703,7 +351,7 @@ enterScreen.addEventListener('click', () => {
 // --- BỘ ĐẾM VIEW & TIM ---
 async function fetchAbacus(action, key) {
  try {
-  const res = await fetch(`${ABACUS_BASE}/${action}/${NS}/${key}`, { cache: "no-store" });
+  const res = await fetch(`https://abacus.jasoncameron.dev/${action}/dxcstore_github_io/${key}`, { cache: "no-store" });
   if (!res.ok) throw new Error("Network error");
   const data = await res.json();
   return data.value;
