@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080808">
-<title>Chính Ok — My Space</title>
+<title id="browser-title">Chính Ok là tớ ><</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@700&display=swap');
+
 *{box-sizing:border-box}
 :root{--glass:rgba(15,15,15,.55);--line:rgba(255,255,255,.15);--white:#fff}
 body{
@@ -50,14 +52,81 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 /* Khung thông tin trên */
 .profile{padding:28px 30px 20px;text-align:left}
-.avatar{
- width:165px;height:165px;border-radius:50%;background:#050505;
- border:2px solid rgba(255,255,255,.6);
- background-image: url('https://cdn.upanhlaylink.com/i/NaAt4Asj.png');
- background-size: cover; background-position: center;
- box-shadow:0 8px 25px rgba(0,0,0,.8);
+
+/* --- HIỆU ỨNG TỨC GIẬN CHUẨN DISCORD --- */
+.avatar-container {
+ position: relative;
+ width: 165px;
+ height: 165px;
+ margin-bottom: 16px;
 }
-.name{font-size:34px;font-weight:900;margin:16px 0 8px;letter-spacing:.5px}
+.avatar-container::after {
+ content: '';
+ position: absolute;
+ inset: -6px;
+ border-radius: 50%;
+ border: 3px dashed #ff2200;
+ z-index: 0;
+ animation: spinAngryRing 4s linear infinite;
+}
+@keyframes spinAngryRing {
+ 0% { transform: rotate(0deg); }
+ 100% { transform: rotate(360deg); }
+}
+
+.avatar{
+ position: relative;
+ z-index: 1;
+ width: 100%;
+ height: 100%;
+ border-radius: 50%;
+ background: #050505;
+ border: 3px solid rgba(255, 69, 0, 0.9);
+ background-image: url('https://cdn.upanhlaylink.com/i/NaAt4Asj.png');
+ background-size: cover; 
+ background-position: center;
+ box-shadow: 0 8px 25px rgba(255, 0, 0, 0.3);
+}
+
+/* Icon gân tức giận góc phải avatar */
+.angry-icon {
+ position: absolute;
+ top: -4px;
+ right: 4px;
+ z-index: 3;
+ width: 44px;
+ height: 44px;
+ pointer-events: none;
+ filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+ animation: angryPulse 1.5s ease-in-out infinite;
+}
+@keyframes angryPulse {
+ 0%, 100% { transform: scale(1); }
+ 50% { transform: scale(1.1); }
+}
+
+/* --- PHÔNG CHỮ ĐẶC BIỆT CHUẨN DISCORD NITRO & ÁNH SÁNG LƯỚT QUA --- */
+.name{
+ font-family: 'Fredoka', sans-serif;
+ font-size: 2rem;
+ font-weight: 700;
+ letter-spacing: 0.5px;
+ margin: 16px 0 8px;
+ line-height: 1.2;
+ position: relative;
+ text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+ background: linear-gradient(90deg, #fff 0%, #00ffff 30%, #ff00ff 70%, #fff 100%);
+ background-size: 200% auto;
+ color: transparent;
+ -webkit-background-clip: text;
+ background-clip: text;
+ animation: lightSweep 3.5s linear infinite;
+}
+@keyframes lightSweep {
+ 0% { background-position: 200% center; }
+ 100% { background-position: -200% center; }
+}
+
 .bio{font-weight:700;margin:0 0 16px;font-size:15px;color:#eee}
 
 /* Icon mạng xã hội chuẩn SVG */
@@ -71,30 +140,11 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 .socials a:hover{transform:translateY(-2px);background:rgba(255,255,255,0.3)}
 .socials svg{width:20px;height:20px;fill:currentColor;}
 
-/* Bộ đếm View và Nút Thả Tim */
-.counter-box{
- display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;
-}
-.counter-badge{
- display:flex;align-items:center;gap:8px;
- background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
- padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;color:#ddd;
- user-select:none;
-}
-.counter-badge svg{width:16px;height:16px;fill:currentColor}
-.like-btn{
- cursor:pointer;transition:all .2s;background:rgba(255,255,255,0.12);
- border:1px solid rgba(255,255,255,0.25);
-}
-.like-btn:hover{background:rgba(255,71,87,0.2);border-color:rgba(255,71,87,0.45);color:#ff6b6b;transform:scale(1.05)}
-.like-btn:active{transform:scale(0.95)}
-.like-btn.liked{background:rgba(255,71,87,0.25);border-color:rgba(255,71,87,0.6);color:#ff6b6b}
-
-/* Khung Discord */
+/* --- KHUNG DISCORD NẰM TRÊN --- */
 .discord{
  border-radius:22px;background:rgba(0,0,0,.45);
  border:1px solid rgba(255,255,255,.1);padding:14px 18px;
- display:flex;align-items:center;gap:16px;
+ display:flex;align-items:center;gap:16px;margin-bottom:16px;
 }
 .discord-logo{
  width:76px;height:76px;border-radius:50%;background:#000;border:1.5px solid rgba(255,255,255,.45);
@@ -111,12 +161,24 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 .profile-btn:hover{background:#2ba868}
 
-/* Vị trí Hà Nội */
-.stats{
- display:flex;align-items:center;gap:6px;margin-top:18px;
- font-weight:bold;font-size:14px;color:#fff;
+/* --- THANH THÔNG TIN NẰM DƯỚI KHUNG DISCORD --- */
+.counter-box{
+ display:flex;gap:12px;flex-wrap:wrap;align-items:center;
 }
-.stats svg{width:16px;height:16px;fill:currentColor;flex:none}
+.counter-badge{
+ display:flex;align-items:center;gap:8px;
+ background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+ padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;color:#ddd;
+ user-select:none;
+}
+.counter-badge svg{width:16px;height:16px;fill:currentColor}
+.like-btn{
+ cursor:pointer;transition:all .2s;background:rgba(255,255,255,0.12);
+ border:1px solid rgba(255,255,255,0.25);
+}
+.like-btn:hover{background:rgba(255,71,87,0.2);border-color:rgba(255,71,87,0.45);color:#ff6b6b;transform:scale(1.05)}
+.like-btn:active{transform:scale(0.95)}
+.like-btn.liked{background:rgba(255,71,87,0.25);border-color:rgba(255,71,87,0.6);color:#ff6b6b}
 
 /* Khung phát nhạc bên dưới */
 .music{margin-top:16px;padding:20px 24px}
@@ -283,7 +345,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  border: 1px solid rgba(255,255,255,0.08);
  word-break: break-word;
 }
-.chat-msg-author { font-size: 11px; color: #38ef7d; font-weight: bold; margin-bottom: 2px; }
+.chat-msg-author { font-size: 11px; color: #ff5100; font-weight: bold; margin-bottom: 2px; }
 .chat-msg-text { color: #eee; }
 
 .chat-input-area {
@@ -320,8 +382,8 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 @media(max-width:560px){
  .profile{padding:22px 20px 18px}
- .avatar{width:135px;height:135px}
- .name{font-size:28px}
+ .avatar-container{width:135px;height:135px}
+ .name{font-size:1.7rem}
  .cover{width:72px;height:72px}
  .track-title{font-size:17px}
  .controls{gap:8px}
@@ -331,7 +393,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 </head>
 <body oncontextmenu="return false;">
 
-<!-- Màn hình chào mừng yêu cầu click để bật nhạc -->
+<!-- Màn hình chào mừng yêu cầu click -->
 <div id="enter-screen">
  <h1>click de vao trong nhee</h1>
  <p>hello</p>
@@ -350,7 +412,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  <div class="chat-header">
   <div class="chat-header-left">
    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-   <span>Chat cộng đồng</span>
+   <span>Chat cộng đồng toàn cầu</span>
   </div>
   <button class="chat-close" id="chat-close-btn">✕</button>
  </div>
@@ -370,7 +432,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
   <div class="chat-messages-list" id="chat-messages-container">
    <div class="chat-msg-item">
     <div class="chat-msg-author">DXC STORE</div>
-    <div class="chat-msg-text">Đang kết nối mây toàn cầu...</div>
+    <div class="chat-msg-text">Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉</div>
    </div>
   </div>
   <div class="chat-input-area">
@@ -382,7 +444,13 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <main>
  <section class="panel profile">
-  <div class="avatar"></div>
+  <div class="avatar-container">
+   <!-- Icon gân tức giận chuẩn Discord -->
+   <svg class="angry-icon" viewBox="0 0 24 24" fill="#ff2200">
+    <path d="M18.5 2.5c-.3 0-.6.1-.8.3l-3.2 3.2c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0l2.5-2.5V9c0 .6.4 1 1 1s1-.4 1-1V4.9l2.5 2.5c.4.4 1 .4 1.4 0 .4-.4.4-1 0-1.4l-3.2-3.2c-.2-.2-.5-.3-.8-.3zM5.5 2.5c-.3 0-.6.1-.8.3L1.5 6c-.4.4-.4 1 0 1.4.4.4 1 .4 1.4 0L5.4 4.9V9c0 .6.4 1 1 1s1-.4 1-1V4.9l2.5 2.5c.4.4 1 .4 1.4 0 .4-.4.4-1 0-1.4L8.3 2.8c-.2-.2-.5-.3-.8-.3zM12 9c-1.1 0-2 .9-2 2 0 .8.5 1.5 1.2 1.8L9.5 17c-.2.4 0 .9.4 1.1.4.2.9 0 1.1-.4l1.8-4.1c.1 0 .2.1.2.1s.1 0 .2-.1l1.8 4.1c.2.4.7.6 1.1.4.4-.2.6-.7.4-1.1l-1.7-4.2c.7-.3 1.2-1 1.2-1.8 0-1.1-.9-2-2-2z"/>
+   </svg>
+   <div class="avatar"></div>
+  </div>
   <h1 class="name">Chính Ok</h1>
   <p class="bio">đẹp zai 2 lai ✦</p>
   
@@ -398,18 +466,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
    </a>
   </nav>
 
-  <!-- Bộ đếm View và Nút Thả Tim -->
-  <div class="counter-box">
-   <div class="counter-badge" title="Tổng lượt xem">
-    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-    <span id="view-count">...</span> Lượt xem
-   </div>
-   <div class="counter-badge like-btn" id="like-btn" title="Bấm vào để thả tim">
-    <svg viewBox="0 0 24 24" style="color:#ff4757;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-    <span id="like-count">...</span> Thả tim
-   </div>
-  </div>
-
+  <!-- Khung Discord DXC STORE nằm ở trên -->
   <div class="discord">
    <div class="discord-logo"></div>
    <div class="discord-info">
@@ -419,9 +476,20 @@ main{position:relative;z-index:2;width:min(760px,100%)}
    </div>
   </div>
 
-  <div class="stats">
-   <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-   Hà Nội
+  <!-- Thanh thông tin: Lượt xem, Thả tim, Hà Nội nằm ở dưới -->
+  <div class="counter-box">
+   <div class="counter-badge" title="Tổng lượt xem">
+    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+    <span id="view-count">...</span> Lượt xem
+   </div>
+   <div class="counter-badge like-btn" id="like-btn" title="Bấm vào để thả tim">
+    <svg viewBox="0 0 24 24" style="color:#ff4757;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <span id="like-count">...</span> Thả tim
+   </div>
+   <div class="counter-badge" title="Vị trí">
+    <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+    Hà Nội
+   </div>
   </div>
  </section>
 
@@ -454,6 +522,39 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
+// --- HIỆU ỨNG GÕ CHỮ TRÊN TIÊU ĐỀ TRÌNH DUYỆT ---
+const browserTitle = document.getElementById('browser-title');
+const textArray = ["Chính Ok là tớ ><"];
+let textIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+let typingSpeed = 150;
+
+function typeEffect() {
+ const currentText = textArray[textIndex];
+ 
+ if (isDeleting) {
+  browserTitle.textContent = currentText.substring(0, charIndex - 1);
+  charIndex--;
+  typingSpeed = 70;
+ } else {
+  browserTitle.textContent = currentText.substring(0, charIndex + 1);
+  charIndex++;
+  typingSpeed = 150;
+ }
+
+ if (!isDeleting && charIndex === currentText.length) {
+  isDeleting = true;
+  typingSpeed = 2000;
+ } else if (isDeleting && charIndex === 0) {
+  isDeleting = false;
+  typingSpeed = 500;
+ }
+
+ setTimeout(typeEffect, typingSpeed);
+}
+setTimeout(typeEffect, 1000);
+
 // --- XỬ LÝ MỞ / ĐÓNG POPUP CHAT ---
 const chatToggleBtn = document.getElementById('chat-toggle-btn');
 const chatPopupBox = document.getElementById('chat-popup-box');
@@ -479,7 +580,7 @@ chatCloseBtn.addEventListener('click', () => {
  chatPopupBox.style.display = 'none';
 });
 
-// --- HỆ THỐNG CHAT ĐÁM MÂY TOÀN CẦU (SỬ DỤNG JSONBIN MIỄN PHÍ AN TOÀN) ---
+// --- HỆ THỐNG CHAT ĐÁM MÂY STABLE ---
 const loginView = document.getElementById('chat-login-view');
 const mainView = document.getElementById('chat-main-view');
 const usernameInput = document.getElementById('chat-username-input');
@@ -507,12 +608,33 @@ loginBtn.addEventListener('click', () => {
  mainView.style.display = 'flex';
 });
 
-// Dùng dịch vụ api công khai lưu trữ đám mây toàn cầu ổn định
-const BIN_URL = "https://api.jsonbin.io/v3/b/6612345eacd3cb34a8321234"; // Dùng kho lưu trữ dữ liệu công khai đồng bộ tự động
-
-// Cơ chế lưu mây thông minh qua Abacus đếm số lượng bản ghi kết hợp nội dung lưu trữ dự phòng
 const ABACUS_BASE = "https://abacus.jasoncameron.dev";
-const NS = "dxcstore_github_io";
+const NS = "dxcstore_github_io_v5";
+
+// 50 tên người dùng (cả có dấu và không dấu)
+const autoBotNames = [
+ "kurochan", "be map", "hacker mu sat", "tuan dz", "thanh 99", "hoang an", "chien than", "long kien", "dat co don", "nam beo",
+ "huy ghost", "duc vip", "son tung", "phuc nguyen", "minh triet", "khang pro", "linh napoleon", "hai dang", "tuan anh", "trung kien",
+ "anhtuan99", "viet hung", "quoc bao", "gia huy", "nam phong", "duc thang", "tuan vu", "hoang long", "son la", "minh quan",
+ "phương mai", "linh chi", "trà my", "ngọc anh", "thu hà", "mai hương", "diệu linh", "quỳnh anh", "phương uyên", "bảo ngọc",
+ "hoàng yến", "thùy trang", "khánh chi", "lan anh", "thanh hằng", "bích trâm", "hà vy", "mỹ linh", "yến nhi", "tú quỳnh"
+];
+
+// 50 câu tin nhắn ngẫu nhiên (cả có dấu và không dấu, không icon)
+const autoBotMessages = [
+ "ai solo 1vs1 lien quan ko ae", "sao t bam vao sever discord ko vao duoc nhi", "web nay nhin cuon phet nh", "nhạc nghe chill phết ai biết tên bài ko", "chính ok dạo này bận j đấy",
+ "co ai choi free fire ko keo phat nao", "link discord loi hay sao ma an ko thay nhay vao", "vua vao thay web dep qua phai vao chém gió ngay", "ae dang lam j day", "choi game j cuoi tuan nay ko ae",
+ "ai ranh vao lam vai tran lien quan xem nao", "dao nay thay trang nay Đẹp phết nhể", "co ai o ha noi ko giao luu phat", "mấy ông làm j mà im re thế", "t vừa ăn cơm xong co j hot ko",
+ "cho xin link nhac nghe cuon qua", "chính ơi vao day xem ae chet gios nay", "co ai biet fix loi khong vao duoc discord ko chi voi", "hom nay troi mat me ngu suong that day", "ai xem bong da toi nay ko",
+ "chan qua ko co j choi", "co ai thich nghe nhac remix giong nay ko", "thay bao web nay dang hot lam phai vao xem", "danh rank toan gap to gi go chan vai", "co ai choi toc chien ko keo nao",
+ "vao day ngam web cua ong chinh thay dep phai biet", "ai co tua game nao hay hay gioi thieu t voi", "ngoi ca buoi chieu chan ghe", "may ong an com chua day", "thay nhieu nguoi vao chat phost nay ghe",
+ "ai o hai phong diem danh cai nao", "dac biet thich cai giao dien nay luon nhin hay ho", "chieu nay co keo nao ko ae", "ong nao rank cao keo t leo rank voi", "vua di hoc ve met qua",
+ "ai coi phim gi hay ke ten t xem voi", "dao nay thoi tiet chan thiet chi muon ngu", "vao check xem co ai nhan tin chua", "web nay thiet ke nhin muot ghe", "co ai biet lam web k chi t voi",
+ "chúc ae mot ngay vui ve nhe", "lai chuan bi buoi toi khong biet lam j", "ai dang online vao day diem danh phat", "choi game ca ngay met wa", "thich nhat cai giao dien toi mau nay nhin dep",
+ "co ai thich nghe nhac giong t ko", "vao day thay xôm phết nhể", "chieu nay ai ranh di ca phe ko", "thoi di an com day ty vao chet tiep", "chào cả nhà họ nguyễn nhé"
+];
+
+let localMessagesCache = [];
 
 async function getGlobalMessages() {
  try {
@@ -528,22 +650,31 @@ async function getGlobalMessages() {
 
 async function saveGlobalMessages(msgs) {
  try {
-  if (msgs.length > 30) msgs = msgs.slice(msgs.length - 30); // Giữ 30 tin nhắn mới nhất
+  if (msgs.length > 50) msgs = msgs.slice(msgs.length - 50);
   const encoded = encodeURIComponent(JSON.stringify(msgs));
   await fetch(`${ABACUS_BASE}/set/${NS}/global_chat_pool/${encoded}`, { cache: "no-store" });
  } catch(e){}
 }
 
-async function syncCloudChat(isInitial = false) {
+async function syncCloudChat() {
  let msgs = await getGlobalMessages();
  if (!msgs || !Array.isArray(msgs) || msgs.length === 0) {
-  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
-  if (isInitial) await saveGlobalMessages(msgs);
+  msgs = [
+   { author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }
+  ];
+  await saveGlobalMessages(msgs);
  }
- renderChatUI(msgs, isInitial);
+ 
+ // Chỉ render lại nếu số lượng tin nhắn thay đổi hoặc có tin nhắn mới từ người khác
+ if (msgs.length !== localMessagesCache.length) {
+  localMessagesCache = msgs;
+  renderChatUI(msgs);
+ }
 }
 
-function renderChatUI(msgs, isInitial = false) {
+function renderChatUI(msgs) {
+ const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 80;
+ 
  messagesContainer.innerHTML = '';
  msgs.forEach(m => {
   const div = document.createElement('div');
@@ -551,16 +682,11 @@ function renderChatUI(msgs, isInitial = false) {
   div.innerHTML = `<div class="chat-msg-author">${escapeHtml(m.author)}</div><div class="chat-msg-text">${escapeHtml(m.text)}</div>`;
   messagesContainer.appendChild(div);
  });
- messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
- if (!isInitial && msgs.length > lastMsgCount) {
-  if (chatPopupBox.style.display !== 'flex') {
-   unreadCount += (msgs.length - lastMsgCount);
-   badgeCount.textContent = unreadCount;
-   badgeCount.style.display = 'block';
-   chatToggleBtn.classList.add('new-msg');
-  }
+ if (isAtBottom || chatPopupBox.style.display === 'flex') {
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
  }
+
  lastMsgCount = msgs.length;
  badgeCount.textContent = lastMsgCount;
 }
@@ -579,23 +705,47 @@ async function sendMessage() {
  const text = messageInput.value.trim();
  if (!text) return;
  if (!currentUser) {
-  alert('Vui lòng đăng nhập tên trước!');
+  alert('Vui lòng nhập tên trước!');
   return;
  }
 
  sendBtn.disabled = true;
- let msgs = (await getGlobalMessages()) || [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
+ let msgs = (await getGlobalMessages()) || [];
  msgs.push({ author: currentUser, text: text });
  await saveGlobalMessages(msgs);
  
- messageInput.value = '';
+ localMessagesCache = msgs;
  renderChatUI(msgs);
+ messageInput.value = '';
  sendBtn.disabled = false;
 }
 
-// Khởi chạy tải và tự động đồng bộ toàn cầu mỗi 3 giây
-syncCloudChat(true);
-setInterval(() => syncCloudChat(false), 3000);
+// Khởi chạy đồng bộ lần đầu
+(async () => {
+ let msgs = await getGlobalMessages();
+ if (!msgs || !Array.isArray(msgs) || msgs.length === 0) {
+  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
+  await saveGlobalMessages(msgs);
+ }
+ localMessagesCache = msgs;
+ renderChatUI(msgs);
+})();
+
+// Đồng bộ ngầm mỗi 3 giây
+setInterval(syncCloudChat, 3000);
+
+// --- TỰ ĐỘNG BẮN TIN NHẮN NGẪU NHIÊN MỖI 10 GIÂY ---
+setInterval(async () => {
+ const randomName = autoBotNames[Math.floor(Math.random() * autoBotNames.length)];
+ const randomText = autoBotMessages[Math.floor(Math.random() * autoBotMessages.length)];
+ 
+ let msgs = (await getGlobalMessages()) || [];
+ msgs.push({ author: randomName, text: randomText });
+ await saveGlobalMessages(msgs);
+ 
+ localMessagesCache = msgs;
+ renderChatUI(msgs);
+}, 10000);
 
 // --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
 const enterScreen = document.getElementById('enter-screen');
@@ -630,13 +780,13 @@ window.addEventListener('DOMContentLoaded', async () => {
  const likes = await fetchAbacus("get", "likes");
  likeEl.textContent = likes !== null ? likes : "0";
 
- if (localStorage.getItem("dxc_liked_v2") === "1") {
+ if (localStorage.getItem("dxc_liked_v5") === "1") {
   likeBtn.classList.add("liked");
  }
 
  likeBtn.addEventListener('click', async () => {
-  if (localStorage.getItem("dxc_liked_v2") === "1") return;
-  localStorage.setItem("dxc_liked_v2", "1");
+  if (localStorage.getItem("dxc_liked_v5") === "1") return;
+  localStorage.setItem("dxc_liked_v5", "1");
   likeBtn.classList.add("liked");
 
   const currentLikes = parseInt(likeEl.textContent, 10) || 0;
