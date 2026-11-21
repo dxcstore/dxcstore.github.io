@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cờ Vua Online - Chess.com Style</title>
+<title>Cờ Vua Online - Chess.com Style & Elo</title>
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <style>
@@ -41,8 +41,8 @@
   .modal-card button:hover { background: #73a83d; }
 
   .main-container {
-    display: flex; gap: 20px; max-width: 1040px; width: 100%;
-    align-items: center; justify-content: center; flex-wrap: wrap;
+    display: flex; gap: 20px; max-width: 1060px; width: 100%;
+    align-items: flex-start; justify-content: center; flex-wrap: wrap;
   }
 
   /* Bàn cờ */
@@ -62,7 +62,6 @@
   .light { background: #eeeed2; }
   .dark { background: #769656; }
   
-  /* Quân cờ chiếm trọn ô vuông, to rõ và sắc nét */
   .piece {
     position: absolute; inset: 4px; z-index: 2; pointer-events: none;
     display: flex; align-items: center; justify-content: center;
@@ -81,15 +80,20 @@
   }
   .in-check { background: radial-gradient(circle, #ff4757 30%, transparent 80%) !important; }
 
-  /* Thanh bên */
+  /* Thanh bên & Bảng xếp hạng */
+  .sidebar-wrapper {
+    display: flex; flex-direction: column; gap: 14px; width: min(360px, 90vw);
+  }
   .sidebar {
-    width: min(360px, 90vw); background: #262421; border-radius: 8px; padding: 14px;
+    background: #262421; border-radius: 8px; padding: 14px;
     display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   }
   .player-info {
     display: flex; justify-content: space-between; align-items: center;
     background: #1e1c19; padding: 8px 12px; border-radius: 6px; color: #fff; font-weight: bold; font-size: 13px;
   }
+  .player-left { display: flex; align-items: center; gap: 6px; }
+  .elo-badge { background: #3c3935; padding: 2px 6px; border-radius: 4px; font-size: 11px; color: #fbbf24; }
   .timer { background: #111; padding: 4px 10px; border-radius: 4px; font-family: monospace; font-size: 14px; color: #fff; }
   .status-text { font-size: 12px; color: #989795; text-align: center; }
 
@@ -106,6 +110,8 @@
     padding: 9px; border-radius: 6px; border: 0; font-weight: bold; font-size: 13px;
     cursor: pointer; text-align: center; color: #fff; transition: 0.15s;
   }
+  .btn-start { background: #22c55e; font-size: 14px; }
+  .btn-start:hover { background: #16a34a; }
   .btn-bot { background: #3b82f6; }
   .btn-bot:hover { background: #2563eb; }
   .btn-quick { background: #f59e0b; color: #111; }
@@ -122,14 +128,29 @@
     flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid #4a4743;
     background: #1e1c19; color: #fff; font-size: 12px; outline: none;
   }
+
+  /* Bảng xếp hạng */
+  .leaderboard {
+    background: #262421; border-radius: 8px; padding: 12px 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
+  .leaderboard h3 { color: #fff; margin: 0 0 8px 0; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .lb-list { display: flex; flex-direction: column; gap: 5px; max-height: 120px; overflow-y: auto; }
+  .lb-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #1e1c19; padding: 5px 10px; border-radius: 4px; font-size: 12px; color: #ddd;
+  }
+  .lb-item.highlight { border: 1px solid #81b64c; background: #232820; color: #fff; }
+  .btn-clear-lb { background: none; border: none; color: #ef4444; font-size: 11px; cursor: pointer; padding: 0; }
+  .btn-clear-lb:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
-  <!-- Màn hình nhập tên -->
-  <div id="name-modal">
+  <!-- Màn hình nhập tên (Chỉ hiện nếu chưa có tên lưu trong máy) -->
+  <div id="name-modal" style="display: none;">
     <div class="modal-card">
-      <h2>♟️ Cờ Vua Online</h2>
+      <h2>♟️ Cờ Vua Online & Xếp Hạng</h2>
       <p style="font-size: 13px; color: #989795;">Nhập tên của bạn để bắt đầu:</p>
       <input type="text" id="input-name" placeholder="Tên kỳ thủ..." maxlength="15">
       <button onclick="saveNameAndStart()">Vào chơi</button>
@@ -141,63 +162,211 @@
       <div class="board" id="board"></div>
     </div>
 
-    <div class="sidebar">
-      <!-- Đối thủ -->
-      <div class="player-info">
-        <span id="opponent-name">🤖 Bot thông minh</span>
-        <span class="timer" id="black-timer">3:00</span>
-      </div>
-
-      <div class="status-text" id="status">Chọn thời gian và chế độ đấu!</div>
-
-      <!-- Người chơi -->
-      <div class="player-info">
-        <span id="my-display-name">👤 Kỳ thủ</span>
-        <span class="timer" id="white-timer">3:00</span>
-      </div>
-
-      <!-- Chọn thời gian -->
-      <div style="font-size: 12px; font-weight: bold; color:#fff; margin-top: 2px;">⏱️ Chọn thời gian:</div>
-      <div class="time-modes">
-        <button class="time-btn" onclick="setTimeMode(1, 0, this)">1 phút</button>
-        <button class="time-btn" onclick="setTimeMode(2, 1, this)">2+1</button>
-        <button class="time-btn active" onclick="setTimeMode(3, 2, this)">3+2</button>
-        <button class="time-btn" onclick="setTimeMode(5, 0, this)">5 phút</button>
-        <button class="time-btn" onclick="setTimeMode(10, 0, this)">10 phút</button>
-        <button class="time-btn" onclick="setTimeMode(15, 10, this)">15+10</button>
-      </div>
-
-      <div class="menu-group" style="margin-top: 4px;">
-        <button class="btn-chess btn-bot" onclick="startBotMode()">🤖 Đấu với Bot</button>
-        <button class="btn-chess btn-quick" onclick="startQuickMatch()">⚡ Ghép trận nhanh</button>
-      </div>
-
-      <div class="menu-group" style="background: #1e1c19; padding: 8px; border-radius: 6px;">
-        <div style="font-size: 12px; font-weight: bold; margin-bottom: 6px; color:#fff;">🔑 Chơi với bạn bè:</div>
-        <div class="row-input">
-          <input type="text" id="my-id" readonly value="Đang tạo mã...">
-          <button class="btn-chess btn-gray" style="padding: 6px 10px;" onclick="copyId()">Copy</button>
+    <div class="sidebar-wrapper">
+      <div class="sidebar">
+        <!-- Đối thủ -->
+        <div class="player-info">
+          <div class="player-left">
+            <span id="opponent-name">🤖 Bot thông minh</span>
+            <span class="elo-badge" id="opponent-elo">1350</span>
+          </div>
+          <span class="timer" id="black-timer">3:00</span>
         </div>
-        <div class="row-input" style="margin-top: 6px;">
-          <input type="text" id="peer-id-input" placeholder="Nhập mã bạn bè...">
-          <button class="btn-chess btn-green" style="padding: 6px 10px;" onclick="joinRoom()">Vào</button>
+
+        <div class="status-text" id="status">Nhấn "Bắt đầu trận đấu" để chơi!</div>
+
+        <!-- Người chơi -->
+        <div class="player-info">
+          <div class="player-left">
+            <span id="my-display-name">👤 Kỳ thủ</span>
+            <span class="elo-badge" id="my-elo">1200</span>
+            <button onclick="changePlayerName()" style="background:#3c3935; border:none; color:#aaa; font-size:10px; padding:2px 5px; border-radius:3px; cursor:pointer; margin-left:4px;" title="Đổi tên">✏️</button>
+          </div>
+          <span class="timer" id="white-timer">3:00</span>
+        </div>
+
+        <!-- Chọn thời gian -->
+        <div style="font-size: 12px; font-weight: bold; color:#fff; margin-top: 2px;">⏱️ Chọn thời gian:</div>
+        <div class="time-modes">
+          <button class="time-btn" onclick="setTimeMode(1, 0, this)">1 phút</button>
+          <button class="time-btn" onclick="setTimeMode(2, 1, this)">2+1</button>
+          <button class="time-btn active" onclick="setTimeMode(3, 2, this)">3+2</button>
+          <button class="time-btn" onclick="setTimeMode(5, 0, this)">5 phút</button>
+          <button class="time-btn" onclick="setTimeMode(10, 0, this)">10 phút</button>
+          <button class="time-btn" onclick="setTimeMode(15, 10, this)">15+10</button>
+        </div>
+
+        <div class="menu-group" style="margin-top: 4px;">
+          <button class="btn-chess btn-start" onclick="startMatch()">▶ Bắt đầu trận đấu</button>
+          <button class="btn-chess btn-bot" onclick="startBotMode()">🤖 Đấu với Bot</button>
+          <button class="btn-chess btn-quick" onclick="startQuickMatch()">⚡ Ghép trận nhanh</button>
+        </div>
+
+        <div class="menu-group" style="background: #1e1c19; padding: 8px; border-radius: 6px;">
+          <div style="font-size: 12px; font-weight: bold; margin-bottom: 6px; color:#fff;">🔑 Chơi với bạn bè:</div>
+          <div class="row-input">
+            <input type="text" id="my-id" readonly value="Đang tạo mã...">
+            <button class="btn-chess btn-gray" style="padding: 6px 10px;" onclick="copyId()">Copy</button>
+          </div>
+          <div class="row-input" style="margin-top: 6px;">
+            <input type="text" id="peer-id-input" placeholder="Nhập mã bạn bè...">
+            <button class="btn-chess btn-green" style="padding: 6px 10px;" onclick="joinRoom()">Vào</button>
+          </div>
+        </div>
+
+        <div class="menu-group" style="display: flex; flex-direction: row; gap: 6px;">
+          <button class="btn-chess btn-red" style="flex:1;" onclick="surrenderGame()">🏳️ Chịu thua</button>
+          <button class="btn-chess btn-gray" style="flex:1; background:#ca8a04;" onclick="offerDraw()">🤝 Xin hòa</button>
         </div>
       </div>
 
-      <div class="menu-group" style="display: flex; flex-direction: row; gap: 6px;">
-        <button class="btn-chess btn-red" style="flex:1;" onclick="surrenderGame()">🏳️ Chịu thua</button>
-        <button class="btn-chess btn-gray" style="flex:1; background:#ca8a04;" onclick="offerDraw()">🤝 Xin hòa</button>
+      <!-- Bảng xếp hạng -->
+      <div class="leaderboard">
+        <h3>
+          <span>🏆 Bảng Xếp Hạng Thiết Bị</span>
+          <button class="btn-clear-lb" onclick="clearLeaderboard()">Xóa lịch sử</button>
+        </h3>
+        <div class="lb-list" id="leaderboard-list"></div>
       </div>
     </div>
   </div>
 
 <script>
-  let playerName = "Kỳ thủ";
+  let playerName = localStorage.getItem('chess_current_player') || "";
+  let myElo = 1200;
+  let opponentElo = 1350;
+  let matchStarted = false;
+
+  function getSavedLeaderboard() {
+    try {
+      const data = localStorage.getItem('chess_leaderboard');
+      return data ? JSON.parse(data) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function savePlayerToLeaderboard(name, elo) {
+    if (!name) return;
+    let list = getSavedLeaderboard();
+    const existingIndex = list.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+    if (existingIndex >= 0) {
+      list[existingIndex].elo = elo;
+    } else {
+      list.push({ name: name, elo: elo });
+    }
+    list.sort((a, b) => b.elo - a.elo);
+    try {
+      localStorage.setItem('chess_leaderboard', JSON.stringify(list));
+    } catch(e) {}
+    updateLeaderboardUI();
+  }
+
+  function clearLeaderboard() {
+    if (confirm("Bạn muốn xóa sạch bảng xếp hạng trên thiết bị này không?")) {
+      localStorage.removeItem('chess_leaderboard');
+      savePlayerToLeaderboard(playerName, myElo);
+    }
+  }
+
+  function updateLeaderboardUI() {
+    let list = getSavedLeaderboard();
+    if (playerName && !list.some(p => p.name.toLowerCase() === playerName.toLowerCase())) {
+      list.push({ name: playerName, elo: myElo });
+    }
+    list.sort((a, b) => b.elo - a.elo);
+
+    const listEl = document.getElementById('leaderboard-list');
+    listEl.innerHTML = '';
+
+    if (list.length === 0) {
+      listEl.innerHTML = `<div style="text-align:center; font-size:11px; color:#777; padding:10px;">Chưa có dữ liệu</div>`;
+      return;
+    }
+
+    list.forEach((player, index) => {
+      const isMe = (player.name.toLowerCase() === playerName.toLowerCase());
+      const item = document.createElement('div');
+      item.className = `lb-item ${isMe ? 'highlight' : ''}`;
+      item.innerHTML = `<span>${index + 1}. ${player.name}</span> <span style="color: #fbbf24; font-weight: bold;">${player.elo} Elo</span>`;
+      listEl.appendChild(item);
+    });
+  }
+
+  function checkAutoLogin() {
+    if (!playerName) {
+      document.getElementById('name-modal').style.display = 'flex';
+    } else {
+      let list = getSavedLeaderboard();
+      const found = list.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+      if (found) {
+        myElo = found.elo;
+      } else {
+        myElo = 1200;
+        savePlayerToLeaderboard(playerName, myElo);
+      }
+      document.getElementById('my-display-name').textContent = "👤 " + playerName;
+      document.getElementById('my-elo').textContent = myElo;
+      updateLeaderboardUI();
+    }
+  }
+
   function saveNameAndStart() {
     const val = document.getElementById('input-name').value.trim();
-    if (val) playerName = val;
+    if (!val) return alert("Vui lòng nhập tên hợp lệ!");
+    playerName = val;
+    localStorage.setItem('chess_current_player', playerName);
+
+    let list = getSavedLeaderboard();
+    const found = list.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+    if (found) {
+      myElo = found.elo;
+    } else {
+      myElo = 1200;
+      savePlayerToLeaderboard(playerName, myElo);
+    }
+
     document.getElementById('my-display-name').textContent = "👤 " + playerName;
+    document.getElementById('my-elo').textContent = myElo;
     document.getElementById('name-modal').style.display = 'none';
+    updateLeaderboardUI();
+  }
+
+  function changePlayerName() {
+    document.getElementById('input-name').value = playerName;
+    document.getElementById('name-modal').style.display = 'flex';
+  }
+
+  function updateEloDisplay() {
+    document.getElementById('my-elo').textContent = myElo;
+    document.getElementById('opponent-elo').textContent = opponentElo;
+    savePlayerToLeaderboard(playerName, myElo);
+  }
+
+  function calculateEloChange(playerRating, opponentRating, score) {
+    const K = 32;
+    const expectedScore = 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));
+    return Math.round(K * (score - expectedScore));
+  }
+
+  function handleGameOver(result) {
+    matchStarted = false;
+    if (timerInterval) clearInterval(timerInterval);
+    let scoreMy = 0;
+    if (result === 'win') scoreMy = 1;
+    else if (result === 'draw') scoreMy = 0.5;
+
+    const eloChange = calculateEloChange(myElo, opponentElo, scoreMy);
+    myElo += eloChange;
+    updateEloDisplay();
+
+    if (result === 'win') {
+      alert(`🎉 Chúc mừng bạn đã thắng! Elo thay đổi: ${eloChange >= 0 ? '+' : ''}${eloChange} (Elo mới: ${myElo})`);
+    } else if (result === 'lose') {
+      alert(`❌ Bạn đã thua! Elo thay đổi: ${eloChange} (Elo mới: ${myElo})`);
+    } else {
+      alert(`🤝 Ván cờ hòa! Elo thay đổi: ${eloChange >= 0 ? '+' : ''}${eloChange} (Elo mới: ${myElo})`);
+    }
   }
 
   const game = new Chess();
@@ -247,13 +416,21 @@
   function startClock() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-      if (game.game_over()) return;
+      if (!matchStarted || game.game_over()) return;
       if (game.turn() === 'w') {
         if (whiteTime > 0) whiteTime--;
-        else { alert("Hết giờ! Quân Đen chiến thắng."); clearInterval(timerInterval); }
+        else {
+          clearInterval(timerInterval);
+          if (myColor === 'w') handleGameOver('lose');
+          else handleGameOver('win');
+        }
       } else {
         if (blackTime > 0) blackTime--;
-        else { alert("Hết giờ! Quân Trắng chiến thắng."); clearInterval(timerInterval); }
+        else {
+          clearInterval(timerInterval);
+          if (myColor === 'b') handleGameOver('lose');
+          else handleGameOver('win');
+        }
       }
       updateTimerDisplay();
     }, 1000);
@@ -270,6 +447,14 @@
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 
+  function startMatch() {
+    matchStarted = true;
+    whiteTime = baseMinutes * 60;
+    blackTime = baseMinutes * 60;
+    startClock();
+    statusEl.textContent = "🟢 Trận đấu đã bắt đầu! Lượt của Trắng.";
+  }
+
   function initPeer(customId = null, onReady = null) {
     if (peer) peer.destroy();
     const idToUse = customId || ('cv-' + Math.random().toString(36).substring(2, 7));
@@ -280,14 +465,17 @@
       gameMode = 'pvp';
       conn = connection;
       myColor = 'w';
+      opponentElo = 1200;
+      updateEloDisplay();
       setupConnection();
       game.reset();
       lastMove = null;
+      matchStarted = true;
       whiteTime = baseMinutes * 60;
       blackTime = baseMinutes * 60;
       startClock();
       document.getElementById('opponent-name').textContent = "🌐 Đối thủ Online";
-      statusEl.textContent = "Đối thủ đã vào! Lượt của bạn.";
+      statusEl.textContent = "Đối thủ đã vào! Trận đấu bắt đầu.";
       renderBoard();
     });
   }
@@ -296,15 +484,18 @@
     if (conn) { conn.close(); conn = null; }
     gameMode = 'bot';
     myColor = 'w';
+    opponentElo = 1350;
+    updateEloDisplay();
     game.reset();
     lastMove = null;
     selectedSquare = null;
     legalMoves = [];
+    matchStarted = false;
     whiteTime = baseMinutes * 60;
     blackTime = baseMinutes * 60;
-    startClock();
+    updateTimerDisplay();
     document.getElementById('opponent-name').textContent = "🤖 Bot thông minh";
-    statusEl.textContent = `${playerName} đấu với Bot (Quân Trắng)`;
+    statusEl.textContent = "Nhấn 'Bắt đầu trận đấu' để chơi với Bot!";
     renderBoard();
   }
 
@@ -325,7 +516,7 @@
   }
 
   function makeBotMove() {
-    if (game.game_over() || gameMode !== 'bot') return;
+    if (!matchStarted || game.game_over() || gameMode !== 'bot') return;
     const moves = game.moves({ verbose: true });
     if (moves.length === 0) return;
     let bestMove = null;
@@ -359,6 +550,7 @@
       else blackTime += incrementSeconds;
       updateStatus();
       renderBoard();
+      checkGameOverState();
     }
   }
 
@@ -386,9 +578,12 @@
       clearTimeout(timeout);
       conn = testConn;
       myColor = 'b';
+      opponentElo = 1250;
+      updateEloDisplay();
       setupConnection();
       game.reset();
       lastMove = null;
+      matchStarted = true;
       whiteTime = baseMinutes * 60;
       blackTime = baseMinutes * 60;
       startClock();
@@ -408,9 +603,12 @@
       if (conn) { connection.close(); return; }
       conn = connection;
       myColor = 'w';
+      opponentElo = 1250;
+      updateEloDisplay();
       setupConnection();
       game.reset();
       lastMove = null;
+      matchStarted = true;
       whiteTime = baseMinutes * 60;
       blackTime = baseMinutes * 60;
       startClock();
@@ -426,6 +624,8 @@
     gameMode = 'pvp';
     conn = peer.connect(targetId);
     myColor = 'b';
+    opponentElo = 1200;
+    updateEloDisplay();
     setupConnection();
   }
 
@@ -441,21 +641,16 @@
         legalMoves = [];
         updateStatus();
         renderBoard();
+        checkGameOverState();
       } else if (data.type === 'surrender') {
-        alert("Đối thủ đã đầu hàng! Bạn chiến thắng.");
-        game.reset();
-        renderBoard();
+        handleGameOver('win');
       } else if (data.type === 'draw_offer') {
         if (confirm("Đối thủ muốn xin hòa. Bạn đồng ý chứ?")) {
           conn.send({ type: 'draw_accept' });
-          alert("Ván cờ hòa!");
-          game.reset();
-          renderBoard();
+          handleGameOver('draw');
         }
       } else if (data.type === 'draw_accept') {
-        alert("Đối thủ đã đồng ý hòa!");
-        game.reset();
-        renderBoard();
+        handleGameOver('draw');
       }
     });
   }
@@ -468,15 +663,16 @@
 
   function surrenderGame() {
     if (gameMode === 'bot') {
-      if (confirm("Bạn muốn chịu thua Bot?")) startBotMode();
+      if (confirm("Bạn muốn chịu thua Bot?")) {
+        handleGameOver('lose');
+        startBotMode();
+      }
       return;
     }
     if (!conn || !conn.open) return alert("Chưa kết nối trận đấu!");
     if (confirm("Bạn chắc chắn muốn đầu hàng?")) {
       conn.send({ type: 'surrender' });
-      alert("Bạn đã thua.");
-      game.reset();
-      renderBoard();
+      handleGameOver('lose');
     }
   }
 
@@ -537,6 +733,10 @@
   }
 
   function onSquareClick(square) {
+    if (!matchStarted) {
+      alert("Vui lòng nhấn nút 'Bắt đầu trận đấu' để bắt đầu chơi!");
+      return;
+    }
     if (gameMode === 'pvp' && (!conn || !conn.open)) {
       alert("Hãy chọn Đấu Bot, Ghép nhanh hoặc nhập mã phòng trước nhé!");
       return;
@@ -557,8 +757,9 @@
         legalMoves = [];
         updateStatus();
         renderBoard();
+        checkGameOverState();
 
-        if (gameMode === 'bot') {
+        if (gameMode === 'bot' && !game.game_over()) {
           setTimeout(makeBotMove, 400);
         } else if (conn && conn.open) {
           conn.send({ type: 'move', move: moveObj });
@@ -578,25 +779,27 @@
     renderBoard();
   }
 
-  function updateStatus() {
+  function checkGameOverState() {
     if (game.in_checkmate()) {
-      const winner = game.turn() === 'w' ? 'Đen' : 'Trắng';
-      statusEl.textContent = `🏆 Chiếu bí! Quân ${winner} thắng!`;
-      if (timerInterval) clearInterval(timerInterval);
-      return;
+      const winnerColor = game.turn() === 'w' ? 'b' : 'w';
+      if (winnerColor === myColor) handleGameOver('win');
+      else handleGameOver('lose');
+    } else if (game.in_draw()) {
+      handleGameOver('draw');
     }
-    if (game.in_draw()) {
-      statusEl.textContent = "🤝 Ván cờ Hòa!";
-      if (timerInterval) clearInterval(timerInterval);
-      return;
-    }
+  }
 
+  function updateStatus() {
+    if (game.in_checkmate() || game.in_draw()) return;
     const turnName = game.turn() === 'w' ? 'Trắng' : 'Đen';
     const isMyTurn = game.turn() === myColor;
     const checkText = game.in_check() ? " (CHIẾU TƯỚNG!)" : "";
     statusEl.textContent = isMyTurn ? `🟢 Lượt của bạn (${turnName})${checkText}` : `⏳ Đợi đối thủ đi...`;
   }
 
+  // Khởi động
+  checkAutoLogin();
+  updateEloDisplay();
   initPeer();
   startBotMode();
   updateTimerDisplay();
