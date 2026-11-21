@@ -207,8 +207,6 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 .play svg{width:18px;height:18px;fill:currentColor}
 
-#sc-widget{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px}
-
 @media(max-width:560px){
  .profile{padding:22px 20px 18px}
  .avatar-container{width:135px;height:135px}
@@ -300,10 +298,9 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  </section>
 </main>
 
-<iframe id="sc-widget" allow="autoplay"
- src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/vu-van-hung-181062886/ch-anh-chut-th-i-winz-remix&auto_play=true&hide_related=true&show_comments=false&show_user=false&show_reposts=false&visual=false"></iframe>
+<!-- Thẻ Audio HTML5 liên kết đến file nhac.m4a bạn vừa tải lên -->
+<audio id="audio-player" src="nhac.m4a" preload="auto" loop></audio>
 
-<script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
 // --- HIỆU ỨNG GÕ CHỮ TRÊN TIÊU ĐỀ TRÌNH DUYỆT ---
 const browserTitle = document.getElementById('browser-title');
@@ -338,14 +335,82 @@ function typeEffect() {
 }
 setTimeout(typeEffect, 1000);
 
-// --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
+// --- MÀN HÌNH CHÀO MỪNG & PHÁT NHẠC M4A ---
 const enterScreen = document.getElementById('enter-screen');
-let ready = false, playing = false;
+const audio = document.getElementById('audio-player');
+const toggle = document.getElementById('toggle');
+const seek = document.getElementById('seek');
+const fill = document.getElementById('fill');
+const current = document.getElementById('current');
+const duration = document.getElementById('duration');
+
+const playIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
 
 enterScreen.addEventListener('click', () => {
  enterScreen.style.opacity = '0';
  setTimeout(() => { enterScreen.style.display = 'none'; }, 400);
- if (ready) { widget.play(); }
+ 
+ // Kích hoạt phát nhạc m4a
+ audio.play().then(() => {
+  toggle.innerHTML = pauseIcon;
+ }).catch(err => console.log("Autoplay blocked:", err));
+});
+
+// Định dạng thời gian nhạc
+function stamp(seconds) {
+ let m = Math.floor(seconds / 60);
+ let s = Math.floor(seconds % 60);
+ return m + ':' + String(s).padStart(2, '0');
+}
+
+audio.addEventListener('loadedmetadata', () => {
+ duration.textContent = stamp(audio.duration);
+});
+
+audio.addEventListener('timeupdate', () => {
+ if (audio.duration) {
+  current.textContent = stamp(audio.currentTime);
+  fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+ }
+});
+
+audio.addEventListener('ended', () => {
+ toggle.innerHTML = playIcon;
+ fill.style.width = '0%';
+});
+
+// Nút Play / Pause
+toggle.addEventListener('click', (e) => { 
+ e.stopPropagation();
+ if (audio.paused) {
+  audio.play();
+  toggle.innerHTML = pauseIcon;
+ } else {
+  audio.pause();
+  toggle.innerHTML = playIcon;
+ }
+});
+
+// Thanh tua nhạc (Progress bar)
+seek.addEventListener('click', e => {
+ e.stopPropagation();
+ if (!audio.duration) return;
+ const r = seek.getBoundingClientRect();
+ const clickPos = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+ audio.currentTime = clickPos * audio.duration;
+});
+
+// Nút tua lùi 10s
+document.getElementById('back').addEventListener('click', (e) => {
+ e.stopPropagation();
+ audio.currentTime = Math.max(0, audio.currentTime - 10);
+});
+
+// Nút tua tới 10s
+document.getElementById('forward').addEventListener('click', (e) => {
+ e.stopPropagation();
+ audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
 });
 
 // --- BỘ ĐẾM VIEW & TIM ---
@@ -388,58 +453,6 @@ window.addEventListener('DOMContentLoaded', async () => {
    likeEl.textContent = updatedLikes;
   }
  });
-});
-
-// Điều khiển nhạc SoundCloud
-const frame = document.getElementById('sc-widget');
-const widget = SC.Widget(frame);
-const toggle = document.getElementById('toggle');
-const seek = document.getElementById('seek');
-const fill = document.getElementById('fill');
-const current = document.getElementById('current');
-const duration = document.getElementById('duration');
-
-const playIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
-const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-
-let total = 0;
-
-function stamp(ms) {
- let s = Math.floor((ms || 0) / 1000);
- return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-}
-
-widget.bind(SC.Widget.Events.READY, () => {
- ready = true;
- widget.getDuration(d => { total = d; duration.textContent = stamp(d); });
-});
-
-widget.bind(SC.Widget.Events.PLAY, () => { playing = true; toggle.innerHTML = pauseIcon; });
-widget.bind(SC.Widget.Events.PAUSE, () => { playing = false; toggle.innerHTML = playIcon; });
-widget.bind(SC.Widget.Events.FINISH, () => { playing = false; toggle.innerHTML = playIcon; fill.style.width = '0%'; });
-widget.bind(SC.Widget.Events.PLAY_PROGRESS, e => {
- if (!total) total = e.duration || 0;
- current.textContent = stamp(e.currentPosition);
- if (total) fill.style.width = (e.currentPosition / total * 100) + '%';
-});
-
-toggle.addEventListener('click', (e) => { 
- e.stopPropagation();
- if (ready) playing ? widget.pause() : widget.play(); 
-});
-seek.addEventListener('click', e => {
- e.stopPropagation();
- if (!total) return;
- const r = seek.getBoundingClientRect();
- widget.seekTo(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * total);
-});
-document.getElementById('back').addEventListener('click', (e) => {
- e.stopPropagation();
- widget.getPosition(p => widget.seekTo(Math.max(0, p - 10000)));
-});
-document.getElementById('forward').addEventListener('click', (e) => {
- e.stopPropagation();
- widget.getPosition(p => widget.seekTo(Math.min(total, p + 10000)));
 });
 </script>
 </body>
