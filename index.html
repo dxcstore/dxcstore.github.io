@@ -21,10 +21,10 @@ body{
 
 /* Màn hình chờ click để vào web */
 #enter-screen{
- position:fixed;inset:0;z-index:9999;
- background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);
+ position:fixed;inset:0;z-index:99999;
+ background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);
  display:flex;flex-direction:column;align-items:center;justify-content:center;
- cursor:pointer;transition:opacity 0.5s ease;
+ cursor:pointer;transition:opacity 0.4s ease;
 }
 #enter-screen h1{
  font-size:26px;font-weight:bold;color:#fff;margin:0 0 8px;
@@ -71,7 +71,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 .socials a:hover{transform:translateY(-2px);background:rgba(255,255,255,0.3)}
 .socials svg{width:20px;height:20px;fill:currentColor;}
 
-/* Thống kê lượt xem và nút thả tim ngay trên khung Discord DXC STORE */
+/* Bộ đếm View và Nút Thả Tim */
 .counter-box{
  display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;
 }
@@ -144,9 +144,178 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 .play svg{width:18px;height:18px;fill:currentColor}
 
-/* Khung Bình luận Giscus */
-.comments-section{margin-top:16px;padding:20px 24px}
-.comments-title{font-size:18px;font-weight:900;margin-bottom:14px}
+/* --- ICON CHAT NỔI Ở GÓC TRÁI (HIỆU ỨNG MESSENGER) --- */
+.chat-float-btn {
+ position: fixed;
+ bottom: 25px;
+ left: 25px;
+ z-index: 9999;
+ width: 50px;
+ height: 50px;
+ background: rgba(30, 30, 30, 0.85);
+ border: 1px solid rgba(255, 255, 255, 0.25);
+ border-radius: 12px;
+ display: grid;
+ place-items: center;
+ cursor: pointer;
+ backdrop-filter: blur(10px);
+ box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+ transition: transform 0.2s, background 0.2s;
+}
+.chat-float-btn:hover { transform: scale(1.08); background: rgba(50, 50, 50, 0.95); }
+.chat-float-btn svg { width: 22px; height: 22px; fill: #fff; }
+
+/* Hiệu ứng rung chuông khi có tin nhắn mới giống Mes */
+@keyframes messengerBounce {
+ 0%, 100% { transform: translateY(0); }
+ 20%, 60% { transform: translateY(-6px) scale(1.1); }
+ 40%, 80% { transform: translateY(-3px) scale(1.05); }
+}
+.chat-float-btn.new-msg {
+ animation: messengerBounce 0.6s ease infinite;
+ border-color: #ff4757;
+}
+
+.chat-badge {
+ position: absolute;
+ top: -6px;
+ right: -6px;
+ background: #ff4757;
+ color: #fff;
+ font-size: 11px;
+ font-weight: bold;
+ padding: 2px 6px;
+ border-radius: 10px;
+ border: 1px solid rgba(255,255,255,0.3);
+ display: none; /* Mặc định ẩn khi chưa có tin nhắn chưa đọc */
+}
+
+/* --- POPUP KHUNG CHAT CỘNG ĐỒNG --- */
+.chat-popup {
+ position: fixed;
+ bottom: 85px;
+ left: 25px;
+ z-index: 99999;
+ width: 340px;
+ height: 460px;
+ background: rgba(18, 18, 18, 0.88);
+ border: 1px solid rgba(255, 255, 255, 0.18);
+ border-radius: 16px;
+ backdrop-filter: blur(16px);
+ -webkit-backdrop-filter: blur(16px);
+ box-shadow: 0 15px 45px rgba(0,0,0,0.7);
+ display: none;
+ flex-direction: column;
+ overflow: hidden;
+ animation: popUpIn 0.25s ease;
+}
+@keyframes popUpIn {
+ from { opacity: 0; transform: translateY(15px) scale(0.95); }
+ to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.chat-header {
+ padding: 12px 16px;
+ background: rgba(255, 255, 255, 0.05);
+ border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ font-weight: bold;
+ font-size: 14px;
+}
+.chat-header-left { display: flex; align-items: center; gap: 8px; }
+.chat-header-left svg { width: 16px; height: 16px; fill: #fff; }
+.chat-close { background: none; border: 0; color: #aaa; cursor: pointer; font-size: 16px; transition: color 0.2s; }
+.chat-close:hover { color: #fff; }
+
+/* Màn hình nhập tên */
+.chat-login-screen {
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ padding: 24px;
+ text-align: center;
+}
+.chat-login-icon {
+ width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.08);
+ display: grid; place-items: center; margin-bottom: 14px;
+ border: 1px solid rgba(255,255,255,0.15);
+}
+.chat-login-icon svg { width: 28px; height: 28px; fill: #aaa; }
+.chat-login-screen p { font-size: 12px; color: #aaa; margin: 0 0 14px; }
+.chat-name-input {
+ width: 100%; padding: 10px 14px; border-radius: 10px;
+ background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
+ color: #fff; font-size: 13px; outline: none; margin-bottom: 12px;
+ text-align: center;
+}
+.chat-login-btn {
+ width: 100%; padding: 10px; border-radius: 10px; border: 0;
+ background: rgba(255,255,255,0.15); color: #fff; font-weight: bold;
+ font-size: 13px; cursor: pointer; transition: background 0.2s;
+ border: 1px solid rgba(255,255,255,0.25);
+}
+.chat-login-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* Màn hình nhắn tin chính */
+.chat-messages-screen {
+ flex: 1;
+ display: none;
+ flex-direction: column;
+ overflow: hidden;
+}
+.chat-messages-list {
+ flex: 1;
+ padding: 12px;
+ overflow-y: auto;
+ display: flex;
+ flex-direction: column;
+ gap: 8px;
+ scrollbar-width: thin;
+}
+.chat-msg-item {
+ background: rgba(255,255,255,0.06);
+ padding: 8px 12px;
+ border-radius: 10px;
+ font-size: 13px;
+ border: 1px solid rgba(255,255,255,0.08);
+ word-break: break-word;
+}
+.chat-msg-author { font-size: 11px; color: #38ef7d; font-weight: bold; margin-bottom: 2px; }
+.chat-msg-text { color: #eee; }
+
+.chat-input-area {
+ padding: 10px;
+ background: rgba(0,0,0,0.3);
+ border-top: 1px solid rgba(255,255,255,0.1);
+ display: flex;
+ gap: 8px;
+}
+.chat-text-input {
+ flex: 1;
+ padding: 8px 12px;
+ border-radius: 10px;
+ background: rgba(0,0,0,0.5);
+ border: 1px solid rgba(255,255,255,0.2);
+ color: #fff;
+ font-size: 13px;
+ outline: none;
+}
+.chat-send-btn {
+ padding: 8px 16px;
+ border-radius: 10px;
+ border: 0;
+ background: #fff;
+ color: #111;
+ font-weight: bold;
+ font-size: 13px;
+ cursor: pointer;
+ transition: background 0.2s;
+}
+.chat-send-btn:hover { background: #eee; }
 
 #sc-widget{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px}
 
@@ -157,10 +326,11 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  .cover{width:72px;height:72px}
  .track-title{font-size:17px}
  .controls{gap:8px}
+ .chat-popup { width: calc(100vw - 30px); left: 15px; bottom: 80px; }
 }
 </style>
 </head>
-<body>
+<body oncontextmenu="return false;"> <!-- Khóa chuột phải bảo vệ trang web -->
 
 <!-- Màn hình chào mừng yêu cầu click -->
 <div id="enter-screen">
@@ -169,6 +339,48 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 </div>
 
 <div class="rain"></div>
+
+<!-- Nút Icon Chat nổi ở góc trái -->
+<div class="chat-float-btn" id="chat-toggle-btn" title="Mở chat cộng đồng">
+ <span class="chat-badge" id="chat-badge-count">0</span>
+ <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+</div>
+
+<!-- Popup Khung Chat Cộng Đồng -->
+<div class="chat-popup" id="chat-popup-box">
+ <div class="chat-header">
+  <div class="chat-header-left">
+   <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+   <span>Chat cộng đồng</span>
+  </div>
+  <button class="chat-close" id="chat-close-btn">✕</button>
+ </div>
+
+ <!-- Màn hình 1: Nhập tên để vào chat -->
+ <div class="chat-login-screen" id="chat-login-view">
+  <div class="chat-login-icon">
+   <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+  </div>
+  <p>Nhập tên hiển thị để tham gia chat</p>
+  <input type="text" class="chat-name-input" id="chat-username-input" placeholder="Tên của bạn...">
+  <button class="chat-login-btn" id="chat-login-submit">Vào chat →</button>
+ </div>
+
+ <!-- Màn hình 2: Giao diện nhắn tin chính -->
+ <div class="chat-messages-screen" id="chat-main-view">
+  <div class="chat-messages-list" id="chat-messages-container">
+   <!-- Tin nhắn mẫu chào mừng -->
+   <div class="chat-msg-item">
+    <div class="chat-msg-author">DXC STORE</div>
+    <div class="chat-msg-text">Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉</div>
+   </div>
+  </div>
+  <div class="chat-input-area">
+   <input type="text" class="chat-text-input" id="chat-message-input" placeholder="Nhắn tin...">
+   <button class="chat-send-btn" id="chat-send-btn">Gửi</button>
+  </div>
+ </div>
+</div>
 
 <main>
  <section class="panel profile">
@@ -188,7 +400,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
    </a>
   </nav>
 
-  <!-- Bộ đếm View và Nút Thả Tim đặt ngay trên khung Discord DXC STORE -->
+  <!-- Bộ đếm View và Nút Thả Tim -->
   <div class="counter-box">
    <div class="counter-badge" title="Tổng lượt xem">
     <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
@@ -237,25 +449,6 @@ main{position:relative;z-index:2;width:min(760px,100%)}
    </div>
   </div>
  </section>
-
- <section class="panel comments-section">
-  <div class="comments-title">💬 Góc Lời Nhắn (Toàn Cầu)</div>
-  <script src="https://giscus.app/client.js"
-        data-repo="dxcstore/dxcstore.github.io"
-        data-repo-id="R_kgDOV1Ycng"
-        data-category="General"
-        data-category-id="DIC_kwDOV1Ycns4DLlF-"
-        data-mapping="pathname"
-        data-strict="0"
-        data-reactions-enabled="1"
-        data-emit-metadata="0"
-        data-input-position="top"
-        data-theme="transparent_dark"
-        data-lang="vi"
-        crossorigin="anonymous"
-        async>
-  </script>
- </section>
 </main>
 
 <iframe id="sc-widget" allow="autoplay"
@@ -263,7 +456,135 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
-// Sử dụng Abacus API để đồng bộ View và Tim chung cho tất cả mọi người
+// --- XỬ LÝ MỞ / ĐÓNG POPUP CHAT & HIỆU ỨNG THÔNG BÁO MES ---
+const chatToggleBtn = document.getElementById('chat-toggle-btn');
+const chatPopupBox = document.getElementById('chat-popup-box');
+const chatCloseBtn = document.getElementById('chat-close-btn');
+const badgeCount = document.getElementById('chat-badge-count');
+
+let unreadCount = 0; // Số tin nhắn chưa đọc khi đóng chat
+
+chatToggleBtn.addEventListener('click', () => {
+ const isVisible = chatPopupBox.style.display === 'flex';
+ if (!isVisible) {
+  chatPopupBox.style.display = 'flex';
+  // Khi mở khung chat ra thì xóa thông báo chưa đọc (giống như đã xem tin nhắn)
+  unreadCount = 0;
+  badgeCount.style.display = 'none';
+  chatToggleBtn.classList.remove('new-msg');
+ } else {
+  chatPopupBox.style.display = 'none';
+ }
+});
+
+chatCloseBtn.addEventListener('click', () => {
+ chatPopupBox.style.display = 'none';
+});
+
+// --- LOGIC HỆ THỐNG CHAT CỘNG ĐỒNG ---
+const loginView = document.getElementById('chat-login-view');
+const mainView = document.getElementById('chat-main-view');
+const usernameInput = document.getElementById('chat-username-input');
+const loginBtn = document.getElementById('chat-login-submit');
+const messageInput = document.getElementById('chat-message-input');
+const sendBtn = document.getElementById('chat-send-btn');
+const messagesContainer = document.getElementById('chat-messages-container');
+
+let currentUser = localStorage.getItem('dxc_chat_user') || '';
+
+if (currentUser) {
+ loginView.style.display = 'none';
+ mainView.style.display = 'flex';
+}
+
+loginBtn.addEventListener('click', () => {
+ const name = usernameInput.value.trim();
+ if (!name) {
+  alert('Vui lòng nhập tên của bạn!');
+  return;
+ }
+ currentUser = name;
+ localStorage.setItem('dxc_chat_user', currentUser);
+ loginView.style.display = 'none';
+ mainView.style.display = 'flex';
+});
+
+function loadMessages(isInitial = false) {
+ let msgs = JSON.parse(localStorage.getItem('dxc_chat_msgs') || '[]');
+ if (msgs.length === 0) {
+  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉' }];
+  localStorage.setItem('dxc_chat_msgs', JSON.stringify(msgs));
+ }
+ renderMessages(msgs, isInitial);
+}
+
+function renderMessages(msgs, isInitial = false) {
+ const oldLen = messagesContainer.children.length;
+ messagesContainer.innerHTML = '';
+ msgs.forEach(m => {
+  const div = document.createElement('div');
+  div.className = 'chat-msg-item';
+  div.innerHTML = `<div class="chat-msg-author">${escapeHtml(m.author)}</div><div class="chat-msg-text">${escapeHtml(m.text)}</div>`;
+  messagesContainer.appendChild(div);
+ });
+ messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+ // Nếu khung chat đang đóng mà có tin nhắn mới tăng lên -> Kích hoạt hiệu ứng thông báo Mes
+ if (!isInitial && msgs.length > oldLen) {
+  if (chatPopupBox.style.display !== 'flex') {
+   unreadCount += (msgs.length - oldLen);
+   badgeCount.textContent = unreadCount;
+   badgeCount.style.display = 'block';
+   chatToggleBtn.classList.add('new-msg');
+  }
+ }
+}
+
+function escapeHtml(text) {
+ const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+ return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+sendBtn.addEventListener('click', sendMessage);
+messageInput.addEventListener('keypress', (e) => {
+ if (e.key === 'Enter') sendMessage();
+});
+
+function sendMessage() {
+ const text = messageInput.value.trim();
+ if (!text) return;
+ if (!currentUser) {
+  alert('Vui lòng đăng nhập tên trước!');
+  return;
+ }
+
+ let msgs = JSON.parse(localStorage.getItem('dxc_chat_msgs') || '[]');
+ msgs.push({ author: currentUser, text: text });
+ localStorage.setItem('dxc_chat_msgs', JSON.stringify(msgs));
+ 
+ messageInput.value = '';
+ renderMessages(msgs);
+}
+
+// Khởi chạy tin nhắn lần đầu
+loadMessages(true);
+
+// Tự động kiểm tra tin nhắn mới từ các tab/máy khác mỗi 2 giây
+window.addEventListener('storage', () => {
+ loadMessages(false);
+});
+
+// --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
+const enterScreen = document.getElementById('enter-screen');
+let ready = false, playing = false;
+
+enterScreen.addEventListener('click', () => {
+ enterScreen.style.opacity = '0';
+ setTimeout(() => { enterScreen.style.display = 'none'; }, 400);
+ if (ready) { widget.play(); }
+});
+
+// --- BỘ ĐẾM VIEW & TIM ---
 const ABACUS_BASE = "https://abacus.jasoncameron.dev";
 const NS = "dxcstore_github_io";
 
@@ -274,7 +595,6 @@ async function fetchAbacus(action, key) {
   const data = await res.json();
   return data.value;
  } catch (e) {
-  console.error("Counter error:", e);
   return null;
  }
 }
@@ -284,20 +604,16 @@ window.addEventListener('DOMContentLoaded', async () => {
  const likeEl = document.getElementById('like-count');
  const likeBtn = document.getElementById('like-btn');
 
- // Mỗi lần tải trang sẽ cộng 1 view thật trên máy chủ chung
  const views = await fetchAbacus("hit", "views");
  viewEl.textContent = views !== null ? views : "0";
 
- // Lấy tổng số tim hiện tại trên máy chủ chung
  const likes = await fetchAbacus("get", "likes");
  likeEl.textContent = likes !== null ? likes : "0";
 
- // Kiểm tra xem máy này đã từng thả tim chưa
  if (localStorage.getItem("dxc_liked_v2") === "1") {
   likeBtn.classList.add("liked");
  }
 
- // Xử lý khi bấm thả tim (mỗi máy chỉ thả được 1 tim, cộng trực tiếp lên máy chủ chung)
  likeBtn.addEventListener('click', async () => {
   if (localStorage.getItem("dxc_liked_v2") === "1") return;
   localStorage.setItem("dxc_liked_v2", "1");
@@ -313,7 +629,7 @@ window.addEventListener('DOMContentLoaded', async () => {
  });
 });
 
-// Điều khiển nhạc SoundCloud & Màn hình chào mừng
+// Điều khiển nhạc SoundCloud
 const frame = document.getElementById('sc-widget');
 const widget = SC.Widget(frame);
 const toggle = document.getElementById('toggle');
@@ -321,12 +637,11 @@ const seek = document.getElementById('seek');
 const fill = document.getElementById('fill');
 const current = document.getElementById('current');
 const duration = document.getElementById('duration');
-const enterScreen = document.getElementById('enter-screen');
 
 const playIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
 const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
 
-let total = 0, playing = false, ready = false;
+let total = 0;
 
 function stamp(ms) {
  let s = Math.floor((ms || 0) / 1000);
@@ -336,14 +651,6 @@ function stamp(ms) {
 widget.bind(SC.Widget.Events.READY, () => {
  ready = true;
  widget.getDuration(d => { total = d; duration.textContent = stamp(d); });
-});
-
-enterScreen.addEventListener('click', () => {
- enterScreen.style.opacity = '0';
- setTimeout(() => { enterScreen.style.display = 'none'; }, 500);
- if (ready) {
-  widget.play();
- }
 });
 
 widget.bind(SC.Widget.Events.PLAY, () => { playing = true; toggle.innerHTML = pauseIcon; });
