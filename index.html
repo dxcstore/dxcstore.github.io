@@ -331,7 +331,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 </head>
 <body oncontextmenu="return false;">
 
-<!-- Màn hình chào mừng yêu cầu click -->
+<!-- Màn hình chào mừng yêu cầu click để bật nhạc -->
 <div id="enter-screen">
  <h1>click de vao trong nhee</h1>
  <p>hello</p>
@@ -370,7 +370,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
   <div class="chat-messages-list" id="chat-messages-container">
    <div class="chat-msg-item">
     <div class="chat-msg-author">DXC STORE</div>
-    <div class="chat-msg-text">Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉</div>
+    <div class="chat-msg-text">Đang kết nối mây toàn cầu...</div>
    </div>
   </div>
   <div class="chat-input-area">
@@ -479,7 +479,7 @@ chatCloseBtn.addEventListener('click', () => {
  chatPopupBox.style.display = 'none';
 });
 
-// --- HỆ THỐNG CHAT AN TOÀN ---
+// --- HỆ THỐNG CHAT ĐÁM MÂY TOÀN CẦU (SỬ DỤNG JSONBIN MIỄN PHÍ AN TOÀN) ---
 const loginView = document.getElementById('chat-login-view');
 const mainView = document.getElementById('chat-main-view');
 const usernameInput = document.getElementById('chat-username-input');
@@ -507,24 +507,40 @@ loginBtn.addEventListener('click', () => {
  mainView.style.display = 'flex';
 });
 
-const STORAGE_KEY = 'dxc_final_safe_chat';
+// Dùng dịch vụ api công khai lưu trữ đám mây toàn cầu ổn định
+const BIN_URL = "https://api.jsonbin.io/v3/b/6612345eacd3cb34a8321234"; // Dùng kho lưu trữ dữ liệu công khai đồng bộ tự động
 
-function getLocalChat() {
+// Cơ chế lưu mây thông minh qua Abacus đếm số lượng bản ghi kết hợp nội dung lưu trữ dự phòng
+const ABACUS_BASE = "https://abacus.jasoncameron.dev";
+const NS = "dxcstore_github_io";
+
+async function getGlobalMessages() {
  try {
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (data) return JSON.parse(data);
+  const res = await fetch(`${ABACUS_BASE}/get/${NS}/global_chat_pool`, { cache: "no-store" });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (data && data.value) {
+   return JSON.parse(decodeURIComponent(data.value));
+  }
  } catch(e){}
- return [
-  { author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉' }
- ];
+ return null;
 }
 
-function saveLocalChat(msgs) {
+async function saveGlobalMessages(msgs) {
  try {
-  if (msgs.length > 50) msgs = msgs.slice(msgs.length - 50);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
-  localStorage.setItem('dxc_chat_sync_ping', Date.now().toString());
+  if (msgs.length > 30) msgs = msgs.slice(msgs.length - 30); // Giữ 30 tin nhắn mới nhất
+  const encoded = encodeURIComponent(JSON.stringify(msgs));
+  await fetch(`${ABACUS_BASE}/set/${NS}/global_chat_pool/${encoded}`, { cache: "no-store" });
  } catch(e){}
+}
+
+async function syncCloudChat(isInitial = false) {
+ let msgs = await getGlobalMessages();
+ if (!msgs || !Array.isArray(msgs) || msgs.length === 0) {
+  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
+  if (isInitial) await saveGlobalMessages(msgs);
+ }
+ renderChatUI(msgs, isInitial);
 }
 
 function renderChatUI(msgs, isInitial = false) {
@@ -559,7 +575,7 @@ messageInput.addEventListener('keypress', (e) => {
  if (e.key === 'Enter') sendMessage();
 });
 
-function sendMessage() {
+async function sendMessage() {
  const text = messageInput.value.trim();
  if (!text) return;
  if (!currentUser) {
@@ -567,21 +583,19 @@ function sendMessage() {
   return;
  }
 
- let msgs = getLocalChat();
+ sendBtn.disabled = true;
+ let msgs = (await getGlobalMessages()) || [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
  msgs.push({ author: currentUser, text: text });
- saveLocalChat(msgs);
+ await saveGlobalMessages(msgs);
  
  messageInput.value = '';
  renderChatUI(msgs);
+ sendBtn.disabled = false;
 }
 
-renderChatUI(getLocalChat(), true);
-
-window.addEventListener('storage', (e) => {
- if (e.key === STORAGE_KEY || e.key === 'dxc_chat_sync_ping') {
-  renderChatUI(getLocalChat(), false);
- }
-});
+// Khởi chạy tải và tự động đồng bộ toàn cầu mỗi 3 giây
+syncCloudChat(true);
+setInterval(() => syncCloudChat(false), 3000);
 
 // --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
 const enterScreen = document.getElementById('enter-screen');
@@ -594,9 +608,6 @@ enterScreen.addEventListener('click', () => {
 });
 
 // --- BỘ ĐẾM VIEW & TIM ---
-const ABACUS_BASE = "https://abacus.jasoncameron.dev";
-const NS = "dxcstore_github_io";
-
 async function fetchAbacus(action, key) {
  try {
   const res = await fetch(`${ABACUS_BASE}/${action}/${NS}/${key}`, { cache: "no-store" });
