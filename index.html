@@ -68,14 +68,16 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  display:flex;align-items:center;gap:8px;
  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
  padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;color:#ddd;
+ user-select:none;
 }
 .counter-badge svg{width:16px;height:16px;fill:currentColor}
 .like-btn{
  cursor:pointer;transition:all .2s;background:rgba(255,255,255,0.12);
  border:1px solid rgba(255,255,255,0.25);
 }
-.like-btn:hover{background:rgba(255,0,0,0.2);border-color:rgba(255,0,0,0.4);color:#ff6b6b;transform:scale(1.05)}
+.like-btn:hover{background:rgba(255,71,87,0.2);border-color:rgba(255,71,87,0.45);color:#ff6b6b;transform:scale(1.05)}
 .like-btn:active{transform:scale(0.95)}
+.like-btn.liked{background:rgba(255,71,87,0.25);border-color:rgba(255,71,87,0.6);color:#ff6b6b}
 
 /* Icon mạng xã hội chuẩn SVG */
 .socials{display:flex;gap:14px;margin-bottom:22px}
@@ -178,11 +180,11 @@ main{position:relative;z-index:2;width:min(760px,100%)}
   <div class="counter-box">
    <div class="counter-badge" title="Tổng lượt xem">
     <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-    <span id="view-count">Đang tải...</span> Lượt xem
+    <span id="view-count">1</span> Lượt xem
    </div>
    <div class="counter-badge like-btn" id="like-btn" title="Bấm vào để thả tim">
     <svg viewBox="0 0 24 24" style="color:#ff4757;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-    <span id="like-count">...</span> Thả tim
+    <span id="like-count">0</span> Thả tim
    </div>
   </div>
   
@@ -261,36 +263,53 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
-// Logic đếm View và Thả tim sử dụng API công khai miễn phí (CountAPI)
-const namespace = "dxcstore-github-io";
-const keyView = "views";
-const keyLike = "likes";
+// Bộ đếm View & Thả tim qua CounterAPI.dev (có lưu dự phòng localStorage)
+const API_BASE = "https://api.counterapi.dev/v1/dxcstore-github-io";
 
-async function updateCounter(type, isIncrement = false) {
+async function syncCounter(key, action = "") {
+ const storageKey = "dxc_local_" + key;
+ let localVal = parseInt(localStorage.getItem(storageKey) || "0", 10);
  try {
-  const method = isIncrement ? "GET" : "GET";
-  const url = `https://api.countapi.xyz/${isIncrement ? 'hit' : 'get'}/${namespace}/${type}`;
-  const res = await fetch(url);
+  const endpoint = action === "up" ? `${API_BASE}/${key}/up` : `${API_BASE}/${key}/`;
+  const res = await fetch(endpoint);
+  if (!res.ok) throw new Error("API error");
   const data = await res.json();
-  return data.value;
+  const count = data.count ?? localVal;
+  localStorage.setItem(storageKey, count);
+  return count;
  } catch (e) {
-  return "---";
+  if (action === "up") localVal += 1;
+  localStorage.setItem(storageKey, localVal);
+  return localVal;
  }
 }
 
-// Tự động tăng 1 view khi mở web và cập nhật số tim hiện tại
 window.addEventListener('DOMContentLoaded', async () => {
- const views = await updateCounter(keyView, true);
- document.getElementById('view-count').textContent = views;
+ const viewEl = document.getElementById('view-count');
+ const likeEl = document.getElementById('like-count');
+ const likeBtn = document.getElementById('like-btn');
 
- const likes = await updateCounter(keyLike, false);
- document.getElementById('like-count').textContent = likes;
-});
+ // Tăng 1 view khi vào trang
+ const views = await syncCounter("views", "up");
+ viewEl.textContent = views;
 
-// Xử lý sự kiện khi bấm nút thả tim
-document.getElementById('like-btn').addEventListener('click', async () => {
- const likes = await updateCounter(keyLike, true);
- document.getElementById('like-count').textContent = likes;
+ // Lấy số tim hiện tại
+ const likes = await syncCounter("likes", "");
+ likeEl.textContent = likes;
+
+ if (localStorage.getItem("dxc_has_liked") === "1") {
+  likeBtn.classList.add("liked");
+ }
+
+ // Bấm thả tim
+ likeBtn.addEventListener('click', async () => {
+  if (localStorage.getItem("dxc_has_liked") === "1") return;
+  localStorage.setItem("dxc_has_liked", "1");
+  likeBtn.classList.add("liked");
+  likeEl.textContent = parseInt(likeEl.textContent || "0", 10) + 1;
+  const updatedLikes = await syncCounter("likes", "up");
+  likeEl.textContent = updatedLikes;
+ });
 });
 
 // Code điều khiển nhạc SoundCloud & Màn hình chào mừng
