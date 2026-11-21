@@ -144,7 +144,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 .play svg{width:18px;height:18px;fill:currentColor}
 
-/* --- ICON CHAT NỔI Ở GÓC TRÁI (HIỆU ỨNG MESSENGER) --- */
+/* --- ICON CHAT NỔI Ở GÓC TRÁI --- */
 .chat-float-btn {
  position: fixed;
  bottom: 25px;
@@ -165,7 +165,6 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 .chat-float-btn:hover { transform: scale(1.08); background: rgba(50, 50, 50, 0.95); }
 .chat-float-btn svg { width: 22px; height: 22px; fill: #fff; }
 
-/* Hiệu ứng rung chuông khi có tin nhắn mới giống Mes */
 @keyframes messengerBounce {
  0%, 100% { transform: translateY(0); }
  20%, 60% { transform: translateY(-6px) scale(1.1); }
@@ -187,7 +186,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  padding: 2px 6px;
  border-radius: 10px;
  border: 1px solid rgba(255,255,255,0.3);
- display: none; /* Mặc định ẩn khi chưa có tin nhắn chưa đọc */
+ display: none;
 }
 
 /* --- POPUP KHUNG CHAT CỘNG ĐỒNG --- */
@@ -330,9 +329,9 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 }
 </style>
 </head>
-<body oncontextmenu="return false;"> <!-- Khóa chuột phải bảo vệ trang web -->
+<body oncontextmenu="return false;">
 
-<!-- Màn hình chào mừng yêu cầu click -->
+<!-- Màn hình chờ click để vào web -->
 <div id="enter-screen">
  <h1>click de vao trong nhee</h1>
  <p>hello</p>
@@ -369,10 +368,9 @@ main{position:relative;z-index:2;width:min(760px,100%)}
  <!-- Màn hình 2: Giao diện nhắn tin chính -->
  <div class="chat-messages-screen" id="chat-main-view">
   <div class="chat-messages-list" id="chat-messages-container">
-   <!-- Tin nhắn mẫu chào mừng -->
    <div class="chat-msg-item">
     <div class="chat-msg-author">DXC STORE</div>
-    <div class="chat-msg-text">Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉</div>
+    <div class="chat-msg-text">Đang tải tin nhắn trực tuyến...</div>
    </div>
   </div>
   <div class="chat-input-area">
@@ -462,13 +460,13 @@ const chatPopupBox = document.getElementById('chat-popup-box');
 const chatCloseBtn = document.getElementById('chat-close-btn');
 const badgeCount = document.getElementById('chat-badge-count');
 
-let unreadCount = 0; // Số tin nhắn chưa đọc khi đóng chat
+let unreadCount = 0;
+let lastMsgLen = 0;
 
 chatToggleBtn.addEventListener('click', () => {
  const isVisible = chatPopupBox.style.display === 'flex';
  if (!isVisible) {
   chatPopupBox.style.display = 'flex';
-  // Khi mở khung chat ra thì xóa thông báo chưa đọc (giống như đã xem tin nhắn)
   unreadCount = 0;
   badgeCount.style.display = 'none';
   chatToggleBtn.classList.remove('new-msg');
@@ -481,7 +479,7 @@ chatCloseBtn.addEventListener('click', () => {
  chatPopupBox.style.display = 'none';
 });
 
-// --- LOGIC HỆ THỐNG CHAT CỘNG ĐỒNG ---
+// --- HỆ THỐNG CHAT ĐỒNG BỘ ĐÁM MÂY (ABACUS API) ---
 const loginView = document.getElementById('chat-login-view');
 const mainView = document.getElementById('chat-main-view');
 const usernameInput = document.getElementById('chat-username-input');
@@ -509,17 +507,37 @@ loginBtn.addEventListener('click', () => {
  mainView.style.display = 'flex';
 });
 
-function loadMessages(isInitial = false) {
- let msgs = JSON.parse(localStorage.getItem('dxc_chat_msgs') || '[]');
- if (msgs.length === 0) {
-  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉' }];
-  localStorage.setItem('dxc_chat_msgs', JSON.stringify(msgs));
+const ABACUS_BASE = "https://abacus.jasoncameron.dev";
+const NS = "dxcstore_github_io";
+
+async function fetchChatMessages() {
+ try {
+  const res = await fetch(`${ABACUS_BASE}/get/${NS}/global_messages`, { cache: "no-store" });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (data && data.value) {
+   return JSON.parse(data.value);
+  }
+ } catch (e) {}
+ return null;
+}
+
+async function saveChatMessages(msgs) {
+ try {
+  await fetch(`${ABACUS_BASE}/set/${NS}/global_messages/${encodeURIComponent(JSON.stringify(msgs))}`, { cache: "no-store" });
+ } catch (e) {}
+}
+
+async function updateChat(isInitial = false) {
+ let msgs = await fetchChatMessages();
+ if (!msgs || !Array.isArray(msgs) || msgs.length === 0) {
+  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng chung! 🎉' }];
+  if (isInitial) await saveChatMessages(msgs);
  }
  renderMessages(msgs, isInitial);
 }
 
 function renderMessages(msgs, isInitial = false) {
- const oldLen = messagesContainer.children.length;
  messagesContainer.innerHTML = '';
  msgs.forEach(m => {
   const div = document.createElement('div');
@@ -529,15 +547,16 @@ function renderMessages(msgs, isInitial = false) {
  });
  messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
- // Nếu khung chat đang đóng mà có tin nhắn mới tăng lên -> Kích hoạt hiệu ứng thông báo Mes
- if (!isInitial && msgs.length > oldLen) {
+ if (!isInitial && msgs.length > lastMsgLen) {
   if (chatPopupBox.style.display !== 'flex') {
-   unreadCount += (msgs.length - oldLen);
+   unreadCount += (msgs.length - lastMsgLen);
    badgeCount.textContent = unreadCount;
    badgeCount.style.display = 'block';
    chatToggleBtn.classList.add('new-msg');
   }
  }
+ lastMsgLen = msgs.length;
+ badgeCount.textContent = lastMsgLen;
 }
 
 function escapeHtml(text) {
@@ -550,7 +569,7 @@ messageInput.addEventListener('keypress', (e) => {
  if (e.key === 'Enter') sendMessage();
 });
 
-function sendMessage() {
+async function sendMessage() {
  const text = messageInput.value.trim();
  if (!text) return;
  if (!currentUser) {
@@ -558,21 +577,17 @@ function sendMessage() {
   return;
  }
 
- let msgs = JSON.parse(localStorage.getItem('dxc_chat_msgs') || '[]');
+ let msgs = (await fetchChatMessages()) || [];
  msgs.push({ author: currentUser, text: text });
- localStorage.setItem('dxc_chat_msgs', JSON.stringify(msgs));
+ await saveChatMessages(msgs);
  
  messageInput.value = '';
  renderMessages(msgs);
 }
 
-// Khởi chạy tin nhắn lần đầu
-loadMessages(true);
-
-// Tự động kiểm tra tin nhắn mới từ các tab/máy khác mỗi 2 giây
-window.addEventListener('storage', () => {
- loadMessages(false);
-});
+// Khởi chạy tải tin nhắn lần đầu và tự động làm mới mỗi 3 giây để đồng bộ mọi máy
+updateChat(true);
+setInterval(() => updateChat(false), 3000);
 
 // --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
 const enterScreen = document.getElementById('enter-screen');
@@ -585,9 +600,6 @@ enterScreen.addEventListener('click', () => {
 });
 
 // --- BỘ ĐẾM VIEW & TIM ---
-const ABACUS_BASE = "https://abacus.jasoncameron.dev";
-const NS = "dxcstore_github_io";
-
 async function fetchAbacus(action, key) {
  try {
   const res = await fetch(`${ABACUS_BASE}/${action}/${NS}/${key}`, { cache: "no-store" });
