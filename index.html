@@ -60,6 +60,23 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 .name{font-size:34px;font-weight:900;margin:16px 0 8px;letter-spacing:.5px}
 .bio{font-weight:700;margin:0 0 16px;font-size:15px;color:#eee}
 
+/* Thống kê lượt xem và nút thả tim */
+.counter-box{
+ display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;
+}
+.counter-badge{
+ display:flex;align-items:center;gap:8px;
+ background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+ padding:8px 16px;border-radius:20px;font-size:13px;font-weight:bold;color:#ddd;
+}
+.counter-badge svg{width:16px;height:16px;fill:currentColor}
+.like-btn{
+ cursor:pointer;transition:all .2s;background:rgba(255,255,255,0.12);
+ border:1px solid rgba(255,255,255,0.25);
+}
+.like-btn:hover{background:rgba(255,0,0,0.2);border-color:rgba(255,0,0,0.4);color:#ff6b6b;transform:scale(1.05)}
+.like-btn:active{transform:scale(0.95)}
+
 /* Icon mạng xã hội chuẩn SVG */
 .socials{display:flex;gap:14px;margin-bottom:22px}
 .socials a{
@@ -156,12 +173,23 @@ main{position:relative;z-index:2;width:min(760px,100%)}
   <div class="avatar"></div>
   <h1 class="name">Chính Ok</h1>
   <p class="bio">đẹp zai 2 lai ✦</p>
+
+  <!-- Bộ đếm View và Nút Thả Tim -->
+  <div class="counter-box">
+   <div class="counter-badge" title="Tổng lượt xem">
+    <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+    <span id="view-count">Đang tải...</span> Lượt xem
+   </div>
+   <div class="counter-badge like-btn" id="like-btn" title="Bấm vào để thả tim">
+    <svg viewBox="0 0 24 24" style="color:#ff4757;"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <span id="like-count">...</span> Thả tim
+   </div>
+  </div>
   
   <nav class="socials">
    <a href="https://www.youtube.com/@DXCSTORE" target="_blank" rel="noopener" title="YouTube">
     <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
    </a>
-   <!-- Icon nhóm Messenger -->
    <a href="https://m.me/cm/_1Z3tc6INIy8Zbab/?send_source=cm:copy_invite_link" target="_blank" rel="noopener" title="Nhóm Messenger">
     <svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.497 1.745 6.616 4.472 8.652V24l4.088-2.242c1.09.302 2.246.464 3.44.464 6.627 0 12-4.974 12-11.111S18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26 6.559-6.963 3.13 3.26 5.889-3.26-6.56 6.963z"/></svg>
    </a>
@@ -233,6 +261,39 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
+// Logic đếm View và Thả tim sử dụng API công khai miễn phí (CountAPI)
+const namespace = "dxcstore-github-io";
+const keyView = "views";
+const keyLike = "likes";
+
+async function updateCounter(type, isIncrement = false) {
+ try {
+  const method = isIncrement ? "GET" : "GET";
+  const url = `https://api.countapi.xyz/${isIncrement ? 'hit' : 'get'}/${namespace}/${type}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  return data.value;
+ } catch (e) {
+  return "---";
+ }
+}
+
+// Tự động tăng 1 view khi mở web và cập nhật số tim hiện tại
+window.addEventListener('DOMContentLoaded', async () => {
+ const views = await updateCounter(keyView, true);
+ document.getElementById('view-count').textContent = views;
+
+ const likes = await updateCounter(keyLike, false);
+ document.getElementById('like-count').textContent = likes;
+});
+
+// Xử lý sự kiện khi bấm nút thả tim
+document.getElementById('like-btn').addEventListener('click', async () => {
+ const likes = await updateCounter(keyLike, true);
+ document.getElementById('like-count').textContent = likes;
+});
+
+// Code điều khiển nhạc SoundCloud & Màn hình chào mừng
 const frame = document.getElementById('sc-widget');
 const widget = SC.Widget(frame);
 const toggle = document.getElementById('toggle');
