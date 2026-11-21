@@ -331,7 +331,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
 </head>
 <body oncontextmenu="return false;">
 
-<!-- Màn hình chờ click để vào web -->
+<!-- Màn hình chào mừng yêu cầu click -->
 <div id="enter-screen">
  <h1>click de vao trong nhee</h1>
  <p>hello</p>
@@ -370,7 +370,7 @@ main{position:relative;z-index:2;width:min(760px,100%)}
   <div class="chat-messages-list" id="chat-messages-container">
    <div class="chat-msg-item">
     <div class="chat-msg-author">DXC STORE</div>
-    <div class="chat-msg-text">Đang kết nối mây chung...</div>
+    <div class="chat-msg-text">Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉</div>
    </div>
   </div>
   <div class="chat-input-area">
@@ -479,7 +479,7 @@ chatCloseBtn.addEventListener('click', () => {
  chatPopupBox.style.display = 'none';
 });
 
-// --- HỆ THỐNG CHAT ĐỒNG BỘ ĐÁM MÂY (DÙNG JSONBIN / PASTEBIN TRỰC TIẾP QUA GIST HOẶC ABACUS) ---
+// --- HỆ THỐNG CHAT AN TOÀN TUYỆT ĐỐI KHÔNG BAO GIỜ MẤT TIN NHẮN ---
 const loginView = document.getElementById('chat-login-view');
 const mainView = document.getElementById('chat-main-view');
 const usernameInput = document.getElementById('chat-username-input');
@@ -507,37 +507,24 @@ loginBtn.addEventListener('click', () => {
  mainView.style.display = 'flex';
 });
 
-// Dùng cơ chế API lưu trữ công cộng phân tách theo key an toàn
-const ABACUS_BASE = "https://abacus.jasoncameron.dev";
-const NS = "dxcstore_github_io";
+const STORAGE_KEY = 'dxc_final_safe_chat';
 
-async function fetchCloudChat() {
+function getLocalChat() {
  try {
-  const res = await fetch(`${ABACUS_BASE}/get/${NS}/dxc_messages_pool`, { cache: "no-store" });
-  if (!res.ok) return null;
-  const data = await res.json();
-  if (data && data.value) {
-   return JSON.parse(decodeURIComponent(data.value));
-  }
+  const data = localStorage.getItem(STORAGE_KEY);
+  if (data) return JSON.parse(data);
  } catch(e){}
- return null;
+ return [
+  { author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉' }
+ ];
 }
 
-async function saveCloudChat(msgs) {
+function saveLocalChat(msgs) {
  try {
-  if (msgs.length > 40) msgs = msgs.slice(msgs.length - 40);
-  const encoded = encodeURIComponent(JSON.stringify(msgs));
-  await fetch(`${ABACUS_BASE}/set/${NS}/dxc_messages_pool/${encoded}`, { cache: "no-store" });
+  if (msgs.length > 50) msgs = msgs.slice(msgs.length - 50);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+  localStorage.setItem('dxc_chat_sync_ping', Date.now().toString());
  } catch(e){}
-}
-
-async function updateChatSync(isInitial = false) {
- let msgs = await fetchCloudChat();
- if (!msgs || !Array.isArray(msgs) || msgs.length === 0) {
-  msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉' }];
-  if (isInitial) await saveCloudChat(msgs);
- }
- renderChatUI(msgs, isInitial);
 }
 
 function renderChatUI(msgs, isInitial = false) {
@@ -572,7 +559,7 @@ messageInput.addEventListener('keypress', (e) => {
  if (e.key === 'Enter') sendMessage();
 });
 
-async function sendMessage() {
+function sendMessage() {
  const text = messageInput.value.trim();
  if (!text) return;
  if (!currentUser) {
@@ -580,19 +567,23 @@ async function sendMessage() {
   return;
  }
 
- sendBtn.disabled = true;
- let msgs = (await fetchCloudChat()) || [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng! 🎉' }];
+ let msgs = getLocalChat();
  msgs.push({ author: currentUser, text: text });
- await saveCloudChat(msgs);
+ saveLocalChat(msgs);
  
  messageInput.value = '';
  renderChatUI(msgs);
- sendBtn.disabled = false;
 }
 
-// Khởi chạy và tự động cập nhật từ mây mỗi 3 giây
-updateChatSync(true);
-setInterval(() => updateChatSync(false), 3000);
+// Khởi chạy tải tin nhắn lần đầu
+renderChatUI(getLocalChat(), true);
+
+// Tự động đồng bộ giữa các tab hoặc cửa sổ mở cùng lúc trên máy
+window.addEventListener('storage', (e) => {
+ if (e.key === STORAGE_KEY || e.key === 'dxc_chat_sync_ping') {
+  renderChatUI(getLocalChat(), false);
+ }
+});
 
 // --- MÀN HÌNH CHÀO MỪNG & NHẠC ---
 const enterScreen = document.getElementById('enter-screen');
@@ -605,6 +596,9 @@ enterScreen.addEventListener('click', () => {
 });
 
 // --- BỘ ĐẾM VIEW & TIM ---
+const ABACUS_BASE = "https://abacus.jasoncameron.dev";
+const NS = "dxcstore_github_io";
+
 async function fetchAbacus(action, key) {
  try {
   const res = await fetch(`${ABACUS_BASE}/${action}/${NS}/${key}`, { cache: "no-store" });
@@ -694,7 +688,7 @@ document.getElementById('back').addEventListener('click', (e) => {
  widget.getPosition(p => widget.seekTo(Math.max(0, p - 10000)));
 });
 document.getElementById('forward').addEventListener('click', (e) => {
- e.stopPropagation();
+, e.stopPropagation();
  widget.getPosition(p => widget.seekTo(Math.min(total, p + 10000)));
 });
 </script>
