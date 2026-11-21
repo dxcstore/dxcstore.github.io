@@ -580,7 +580,7 @@ chatCloseBtn.addEventListener('click', () => {
  chatPopupBox.style.display = 'none';
 });
 
-// --- HỆ THỐNG CHAT ĐÁM MÂY STABLE ---
+// --- HỆ THỐNG CHAT ĐÁM MÂY CỐ ĐỊNH LỊCH SỬ ---
 const loginView = document.getElementById('chat-login-view');
 const mainView = document.getElementById('chat-main-view');
 const usernameInput = document.getElementById('chat-username-input');
@@ -609,7 +609,7 @@ loginBtn.addEventListener('click', () => {
 });
 
 const ABACUS_BASE = "https://abacus.jasoncameron.dev";
-const NS = "dxcstore_github_io_v5";
+const NS = "dxcstore_github_io_v6";
 
 // 50 tên người dùng (cả có dấu và không dấu)
 const autoBotNames = [
@@ -634,8 +634,6 @@ const autoBotMessages = [
  "co ai thich nghe nhac giong t ko", "vao day thay xôm phết nhể", "chieu nay ai ranh di ca phe ko", "thoi di an com day ty vao chet tiep", "chào cả nhà họ nguyễn nhé"
 ];
 
-let localMessagesCache = [];
-
 async function getGlobalMessages() {
  try {
   const res = await fetch(`${ABACUS_BASE}/get/${NS}/global_chat_pool`, { cache: "no-store" });
@@ -650,10 +648,23 @@ async function getGlobalMessages() {
 
 async function saveGlobalMessages(msgs) {
  try {
+  // Giữ lại tối đa 50 tin nhắn mới nhất để mảng không bị quá dài
   if (msgs.length > 50) msgs = msgs.slice(msgs.length - 50);
   const encoded = encodeURIComponent(JSON.stringify(msgs));
   await fetch(`${ABACUS_BASE}/set/${NS}/global_chat_pool/${encoded}`, { cache: "no-store" });
  } catch(e){}
+}
+
+function renderChatUI(msgs) {
+ messagesContainer.innerHTML = '';
+ msgs.forEach(m => {
+  const div = document.createElement('div');
+  div.className = 'chat-msg-item';
+  div.innerHTML = `<div class="chat-msg-author">${escapeHtml(m.author)}</div><div class="chat-msg-text">${escapeHtml(m.text)}</div>`;
+  messagesContainer.appendChild(div);
+ });
+ messagesContainer.scrollTop = messagesContainer.scrollHeight;
+ badgeCount.textContent = msgs.length;
 }
 
 async function syncCloudChat() {
@@ -664,31 +675,7 @@ async function syncCloudChat() {
   ];
   await saveGlobalMessages(msgs);
  }
- 
- // Chỉ render lại nếu số lượng tin nhắn thay đổi hoặc có tin nhắn mới từ người khác
- if (msgs.length !== localMessagesCache.length) {
-  localMessagesCache = msgs;
-  renderChatUI(msgs);
- }
-}
-
-function renderChatUI(msgs) {
- const isAtBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop <= messagesContainer.clientHeight + 80;
- 
- messagesContainer.innerHTML = '';
- msgs.forEach(m => {
-  const div = document.createElement('div');
-  div.className = 'chat-msg-item';
-  div.innerHTML = `<div class="chat-msg-author">${escapeHtml(m.author)}</div><div class="chat-msg-text">${escapeHtml(m.text)}</div>`;
-  messagesContainer.appendChild(div);
- });
-
- if (isAtBottom || chatPopupBox.style.display === 'flex') {
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
- }
-
- lastMsgCount = msgs.length;
- badgeCount.textContent = lastMsgCount;
+ renderChatUI(msgs);
 }
 
 function escapeHtml(text) {
@@ -714,7 +701,6 @@ async function sendMessage() {
  msgs.push({ author: currentUser, text: text });
  await saveGlobalMessages(msgs);
  
- localMessagesCache = msgs;
  renderChatUI(msgs);
  messageInput.value = '';
  sendBtn.disabled = false;
@@ -727,11 +713,10 @@ async function sendMessage() {
   msgs = [{ author: 'DXC STORE', text: 'Chào mừng các bạn đến với góc trò chuyện cộng đồng toàn cầu! 🎉' }];
   await saveGlobalMessages(msgs);
  }
- localMessagesCache = msgs;
  renderChatUI(msgs);
 })();
 
-// Đồng bộ ngầm mỗi 3 giây
+// Đồng bộ danh sách tin nhắn ngầm mỗi 3 giây
 setInterval(syncCloudChat, 3000);
 
 // --- TỰ ĐỘNG BẮN TIN NHẮN NGẪU NHIÊN MỖI 10 GIÂY ---
@@ -742,8 +727,6 @@ setInterval(async () => {
  let msgs = (await getGlobalMessages()) || [];
  msgs.push({ author: randomName, text: randomText });
  await saveGlobalMessages(msgs);
- 
- localMessagesCache = msgs;
  renderChatUI(msgs);
 }, 10000);
 
@@ -780,13 +763,13 @@ window.addEventListener('DOMContentLoaded', async () => {
  const likes = await fetchAbacus("get", "likes");
  likeEl.textContent = likes !== null ? likes : "0";
 
- if (localStorage.getItem("dxc_liked_v5") === "1") {
+ if (localStorage.getItem("dxc_liked_v6") === "1") {
   likeBtn.classList.add("liked");
  }
 
  likeBtn.addEventListener('click', async () => {
-  if (localStorage.getItem("dxc_liked_v5") === "1") return;
-  localStorage.setItem("dxc_liked_v5", "1");
+  if (localStorage.getItem("dxc_liked_v6") === "1") return;
+  localStorage.setItem("dxc_liked_v6", "1");
   likeBtn.classList.add("liked");
 
   const currentLikes = parseInt(likeEl.textContent, 10) || 0;
