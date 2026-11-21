@@ -479,7 +479,7 @@ chatCloseBtn.addEventListener('click', () => {
  chatPopupBox.style.display = 'none';
 });
 
-// --- HỆ THỐNG CHAT AN TOÀN TUYỆT ĐỐI KHÔNG BAO GIỜ MẤT TIN NHẮN ---
+// --- HỆ THỐNG CHAT AN TOÀN ---
 const loginView = document.getElementById('chat-login-view');
 const mainView = document.getElementById('chat-main-view');
 const usernameInput = document.getElementById('chat-username-input');
@@ -575,10 +575,8 @@ function sendMessage() {
  renderChatUI(msgs);
 }
 
-// Khởi chạy tải tin nhắn lần đầu
 renderChatUI(getLocalChat(), true);
 
-// Tự động đồng bộ giữa các tab hoặc cửa sổ mở cùng lúc trên máy
 window.addEventListener('storage', (e) => {
  if (e.key === STORAGE_KEY || e.key === 'dxc_chat_sync_ping') {
   renderChatUI(getLocalChat(), false);
@@ -688,7 +686,7 @@ document.getElementById('back').addEventListener('click', (e) => {
  widget.getPosition(p => widget.seekTo(Math.max(0, p - 10000)));
 });
 document.getElementById('forward').addEventListener('click', (e) => {
-, e.stopPropagation();
+ e.stopPropagation();
  widget.getPosition(p => widget.seekTo(Math.min(total, p + 10000)));
 });
 </script>
